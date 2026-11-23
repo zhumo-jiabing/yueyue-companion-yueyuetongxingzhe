@@ -1,23 +1,15 @@
-# 依赖与运行时
+# 玥玥真源版本控制 — 2026-09-14 建立
+# 目的: 本项目此前无任何版本控制，80 个业务文件只有一份活副本，任何误编辑不可逆。
+# 只忽略可重建 / 会被打进包的垃圾；回滚保险与资产**故意纳入**。
+
 node_modules/
-.venv/
-venv/
 __pycache__/
+dist/
+build/
+.git/
+
+# Python 编译缓存（会被 electron-builder 的 stt/** 白名单打进包）
+stt/__pycache__/
 *.pyc
-
-# 备份 / 临时 / 日志
-*.bak
-*.r9bak
-_backup-*/
-*.log
-tmp/
-
-# 大二进制 / 模型（运行时另行提供，见 THIRD-PARTY-NOTICES.md）
-models/
-*.pth
-*.onnx
-*.zip
-
-# 系统杂项
-.DS_Store
-Thumbs.db
+stt/kokoro/*.onnx
+stt/kokoro/*.bin

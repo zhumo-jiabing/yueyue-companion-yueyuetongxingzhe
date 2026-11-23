@@ -49,74 +49,64 @@ def sha(p):
 
 
 def build_landing():
+    # r197：landing.html 已重写为「大厂发布页」版式，源文件本身就是相对路径、无 /m、无 SW。
+    # 这里不再做绝对→相对替换，而是用 sub1 断言把承重元素逐一钉死（命中数必须精确），
+    # 任何一处文案/结构被改坏都会当场 FAIL，而不是悄悄产出一个坏页。
     s = read(os.path.join(WEB, 'landing.html'))
 
-    # ---- 1. 资源与页面：绝对路径 → 相对路径 ----
-    s = sub1(s, 'href="/web/manifest.webmanifest"', 'href="assets/manifest.webmanifest"', 'landing manifest')
-    _n = s.count('href="/web/icon-192.png"')
+    # ---- 1. 资源引用：必须已是相对路径 ----
+    s = sub1(s, 'href="assets/manifest.webmanifest"', 'href="assets/manifest.webmanifest"', 'landing manifest')
+    _n = s.count('href="assets/icon-192.png"')
     assert _n == 2, f'icon 引用应为 2 次，实际 {_n}'
-    s = s.replace('href="/web/icon-192.png"', 'href="assets/icon-192.png"')
 
-    # ---- 2. 首屏两个按钮：公网没有 /m，只能加群 ----
-    s = sub1(s,
-             '<a class="btn btn-main" href="#join">加群，看她还在做什么 →</a>\n'
-             '        <a class="btn btn-ghost" href="#nots">她不是什么</a>',
-             '<a class="btn btn-main" href="#join">加群，看她还在做什么 →</a>\n'
-             '        <a class="btn btn-ghost" href="#nots">她不是什么</a>',
-             'landing hero CTA')
-    s = sub1(s,
-             '<p class="hint">这一页在手机和电脑上都能打开。她现在还在内测，进度都写在群里。</p>',
-             '<p class="hint">这一页在手机和电脑上都能打开。她现在还在内测，进度都写在群里。</p>',
-             'landing hint')
+    # ---- 2. 下载 CTA（老板 m00959 改拍板：公开直链下载，指向 GitHub Release）----
+    REL = 'https://github.com/zhumo-jiabing/yueyue-download/releases/tag/v0.3.0-beta.8'
+    s = sub1(s, '<a class="nav-cta" href="%s" rel="noopener">下载内测版</a>' % REL,
+             '<a class="nav-cta" href="%s" rel="noopener">下载内测版</a>' % REL, 'landing nav 下载 CTA')
+    s = sub1(s, '<a class="btn btn-main" href="%s" rel="noopener">下载内测版 →</a>' % REL,
+             '<a class="btn btn-main" href="%s" rel="noopener">下载内测版 →</a>' % REL, 'landing hero 下载 CTA')
 
-    # ---- 3. 立绘：换成定稿形象 F1 ----
-    s = sub1(s,
-             '<img src="/web/yueyue_avatar.webp" alt="玥玥" onerror="this.src=\'/yueyue_avatar.png\'">',
-             '<img src="assets/yueyue.webp" alt="玥玥">',
-             'landing 立绘 img')
+    # ---- 3. tagline / 立绘 / AI 标识 ----
+    s = sub1(s, '<p class="tagline">不催你变好，不替你总结，只是在你旁边坐着。</p>',
+             '<p class="tagline">不催你变好，不替你总结，只是在你旁边坐着。</p>', 'landing tagline')
+    s = sub1(s, '<img src="assets/yueyue.webp" alt="玥玥定稿立绘 F1" width="1024" height="1536">',
+             '<img src="assets/yueyue.webp" alt="玥玥定稿立绘 F1" width="1024" height="1536">', 'landing 立绘 img')
+    if s.count('图像由 AI 生成') < 2:
+        raise SystemExit('[FAIL] AI 生成小字少于 2 处（立绘卡 + 下载披露 / footer）')
 
-    # ---- 4. 「她不是什么」加锚点，给首屏第二个按钮用 ----
-    s = sub1(s,
-             '<section>\n    <h2><span class="kicker">她不是什么</span>',
-             '<section id="nots">\n    <h2><span class="kicker">她不是什么</span>',
-             'landing nots 锚点')
+    # ---- 4. 实机画廊：6 张图必须都在引用里 ----
+    for shot in ('r197-main-chat.png', 'r197-pet.png', 'r197-memory.png',
+                 'r196-s1-guide.png', 'r196-s2-choice.png', 'r196-settle.png'):
+        if ('assets/shots/%s' % shot) not in s:
+            raise SystemExit('[FAIL] 画廊缺图 %s' % shot)
+    if s.count('实机截图') < 3:
+        raise SystemExit('[FAIL] 实机截图标注不足')
 
-    # ---- 5. 入群区：把「局域网展台」这种公网上没人看得懂的话改掉 ----
-    s = sub1(s,
-             '<h2><span class="kicker">想继续</span>加群，或者自己装一个</h2>',
-             '<h2><span class="kicker">想继续</span>进群，看她的进度</h2>',
-             'landing join 标题')
-    s = sub1(s,
-             '<li>电脑版是完整体：会动的立绘、语音、长期记忆、沙盒日常都在里面。</li>',
-             '<li>她在电脑桌面上：会动、能说话、记得你说过的事。</li>',
-             'landing join 第一条')
-    s = sub1(s,
-             '<li>手机版目前只在展台局域网里开放体验，暂时不对外发布。</li>',
-             '<li>现在还是内测，功能和形象都在改，群里能看到每次改动。</li>',
-             'landing join 第三条')
+    # ---- 5. 诚实披露四句（下载区）必须齐 ----
+    for line in ('内测版 · 本地单机桌面工具 · 法律评估中',
+                 '危机时本软件不会自动通知任何第三方',
+                 '语音与立绘含 AI 生成内容',
+                 '不满 18 岁不适用'):
+        if line not in s:
+            raise SystemExit('[FAIL] 下载披露缺句：%s' % line)
 
-    # ---- 6. 页面内链接全部改成相对路径 ----
-    s = sub1(s, '<a href="/web/support.html">可以打赏</a>', '<a href="support.html">可以打赏</a>', 'landing 打赏链接')
-    s = sub1(s, '写在<a href="/policy.html">隐私政策</a>第四节', '写在<a href="policy.html">隐私政策</a>第四节', 'landing 政策链接')
-    # r156: footer 加了「为什么做她 / 如果你现在很难」两个锚点，这里只做 href 归一，不整段比对
-    s = sub1(s,
-             '<a href="#why">为什么做她</a> · <a href="#join">加群</a> · <a href="#help">如果你现在很难</a> · <a href="support.html">打赏与感谢名单</a>',
-             '<a href="#why">为什么做她</a> · <a href="#join">加群</a> · <a href="#help">如果你现在很难</a> · <a href="support.html">打赏与感谢名单</a>',
-             'landing footer 链接')
+    # ---- 6. 只读介绍页 / 群号 / 打赏 / 政策 链接 ----
+    if '本页为只读介绍页' not in s and '只读介绍页' not in s:
+        raise SystemExit('[FAIL] 缺只读介绍页声明')
+    if '1002686604' not in s:
+        raise SystemExit('[FAIL] 缺群号文字兜底')
+    s = sub1(s, '<a href="policy.html">隐私政策与用户协议</a>',
+             '<a href="policy.html">隐私政策与用户协议</a>', 'landing footer 政策链接')
+    if 'href="support.html"' not in s:
+        raise SystemExit('[FAIL] 缺打赏页相对链接')
 
-    # ---- 7. 群码探测：改成相对路径 ----
-    s = s.replace("'/web/qr-group.png'", "'assets/qr-group.png'")
-    if 'assets/qr-group.png' not in s:
-        raise SystemExit('[FAIL] 群码探测路径没替换成功')
-
-    # ---- 8. 去掉 Service Worker（静态托管在子路径下 scope 会错，且会缓存旧页面）----
-    s = re.sub(r"<script>\s*/\* 第108轮：注册 service worker.*?</script>\s*", "", s, flags=re.S)
-    if 'serviceWorker' in s and 'register' in s:
-        raise SystemExit('[FAIL] Service Worker 注册没删干净')
-
-    # ---- 9. 立绘的米白照片卡样式已写进 web/landing.html 本体，这里不再重复注入 ----
-    if '.figure{aspect-ratio:2/3' not in s:
-        raise SystemExit('[FAIL] web/landing.html 里缺少米白照片卡样式')
+    # ---- 7. 红线守卫：无 /m、无 /web/ 绝对路径、无 SW、主按钮无渐变发光 ----
+    for pat in ('href="/m"', '/web/', 'serviceWorker'):
+        if pat in s:
+            raise SystemExit('[FAIL] landing 残留 %s' % pat)
+    _main = s[s.index('.btn-main{'):s.index('}', s.index('.btn-main{'))]
+    if 'gradient' in _main or 'box-shadow' in _main:
+        raise SystemExit('[FAIL] 主按钮出现渐变/发光（§十六 铁线）')
 
     write(os.path.join(DIST, 'index.html'), s)
 
@@ -165,6 +155,19 @@ def build_assets():
                      ('thanks.json', 'thanks.json')]:
         shutil.copy2(os.path.join(WEB, src), os.path.join(ASSETS, dst))
         os.chmod(os.path.join(ASSETS, dst), 0o666)  # 源文件是只读的，不改属性下次 rmtree 会拒绝访问
+
+    # r197：实机画廊截图（web/assets/shots/ → dist/assets/shots/）。缺一张就 FAIL，不让破图上线。
+    shots_src = os.path.join(WEB, 'assets', 'shots')
+    shots_dst = os.path.join(ASSETS, 'shots')
+    os.makedirs(shots_dst, exist_ok=True)
+    need_shots = ('r197-main-chat.png', 'r197-pet.png', 'r197-memory.png',
+                  'r196-s1-guide.png', 'r196-s2-choice.png', 'r196-settle.png')
+    for f in need_shots:
+        sp = os.path.join(shots_src, f)
+        if not os.path.exists(sp):
+            raise SystemExit('[FAIL] 缺实机截图 web/assets/shots/%s' % f)
+        shutil.copy2(sp, os.path.join(shots_dst, f))
+        os.chmod(os.path.join(shots_dst, f), 0o666)
 
     # r184c：Netlify _headers——软件内心意墙要跨域读 assets/thanks.json（CORS + 不缓存）
     write(os.path.join(DIST, '_headers'),
