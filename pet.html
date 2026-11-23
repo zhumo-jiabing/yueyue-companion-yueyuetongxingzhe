@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self'; connect-src 'self'">
+    <title>玥玥 · 气泡</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: transparent;
+            overflow: hidden;
+            user-select: none;
+            font-family: 'Microsoft YaHei', sans-serif;
+            padding: 4px;
+        }
+        /* 气泡卡: 夜青玻璃+暖金(2026-09-09 重设计, 与主窗紫系明确区分, 消除视觉疲劳) */
+        /* 第63轮: 透明度 0.62 → 0.88。桌宠窗是 transparent 窗口, 0.62 时桌面壁纸会透上来,
+           实测本机灰色桌面上合成出 rgb(105,122,133), 白字只有 3.9:1; 0.88 后仍保留玻璃感,
+           但任何壁纸下都落在深色底上(白字 ≥11:1)。 */
+        :root { --pet-alpha: 0.88; }
+        #bubble {
+            position: relative;
+            width: 100%; height: 100%;
+            background: linear-gradient(150deg, rgba(16, 47, 66, var(--pet-alpha)), rgba(11, 33, 50, var(--pet-alpha)));
+            border: 1px solid rgba(126, 196, 214, 0.34);
+            border-radius: 20px;
+            box-shadow: 0 4px 18px rgba(8, 26, 40, 0.34);
+            display: flex; flex-direction: column;
+            color: #f4effc;
+            overflow: hidden;
+            /* 2026-09-10: 去掉 app-region:drag(transparent 窗在 Windows 下拖动闪回左上角), 改 pet.js 自绘拖动 */
+            animation: breathe 4s ease-in-out infinite;
+        }
+        @keyframes breathe {
+            0%, 100% { box-shadow: 0 4px 14px rgba(8, 26, 40, 0.26), 0 0 8px rgba(126, 196, 214, 0.10); }
+            50% { box-shadow: 0 4px 18px rgba(8, 26, 40, 0.34), 0 0 16px rgba(126, 196, 214, 0.22); }
+        }
+        #bubble::after {
+            content: ''; position: absolute; top: -40%; left: -60%; width: 55%; height: 180%;
+            background: linear-gradient(100deg, transparent, rgba(255,255,255,0.07), transparent);
+            transform: rotate(18deg);
+            animation: shine 4.5s ease-in-out infinite;
+            pointer-events: none;
+        }
+        @keyframes shine { 0%, 55% { left: -60%; } 100% { left: 150%; } }
+        /* 头部: 头像 + 说话状态点 */
+        .b-head {
+            /* 第十五轮(用户反馈5): 头部禁止参与 flex 收缩 —— 否则内容超高时头部被压扁, 文字溢出去压消息区 */
+            flex: none;
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 10px 0 10px;
+        }
+        .avatar-wrap { position: relative; flex: none; }
+        .avatar {
+            width: 34px; height: 34px; border-radius: 12px; object-fit: cover;
+            border: 1.5px solid rgba(126, 196, 214, 0.55);
+            background: #17475e;
+            box-shadow: 0 0 0 2px rgba(8, 26, 40, 0.35), 0 2px 10px rgba(126, 196, 214, 0.25);
+        }
+        .avatar-wrap .dot {
+            position: absolute; right: -2px; bottom: -2px;
+            width: 10px; height: 10px; border-radius: 50%;
+            background: #6fce96; border: 2px solid rgba(30, 24, 48, 0.9);
+            transition: background 0.3s;
+        }
+        .b-title { font-size: 13px; /* 13.12px */ color: #eac9a0; font-weight: bold; letter-spacing: 1px; text-shadow: 0 1px 4px rgba(6, 20, 32, 0.9); }
+        .b-sub { font-size: 12px; /* 11.52px */ color: #e6f3f8; margin-top: 1px; /* 第十三轮: 小字提亮放大 */ text-shadow: 0 1px 4px rgba(4, 14, 24, 0.95); }
+        /* 消息区 */
+        .b-msg {
+            flex: 0 1 auto; padding: 4px 10px 2px; /* 第十五轮: 消息区只在有空间时占位, 不跟 #tellBox 抢 */
+            font-size: 13px; /* 13.44px */ line-height: 1.6; color: #e8f4f7;
+            display: flex; align-items: center; gap: 9px;
+            min-height: 0; overflow: hidden;
+        }
+        .b-msg .icon { font-size: 16px; /* 嵌套 em 复利 15.456px */ flex: none; }
+        .b-msg .text {
+            flex: 1; min-width: 0;
+            display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-shadow: 0 1px 4px rgba(12, 8, 24, 0.95), 0 0 1px rgba(12, 8, 24, 0.8);
+        }
+        .b-msg .icon { filter: drop-shadow(0 1px 3px rgba(12, 8, 24, 0.8)); }
+        #bubble.alert .b-msg .text { color: #ffe9f2; }
+        #bubble.flash { animation: flash 0.9s ease-in-out; }
+        /* 成就通道独立样式(与"她说的话"区分): 雾金边框+辉光, 7 秒后回落 */
+        #bubble.ach {
+            border-color: rgba(217, 195, 150, 0.62);
+            box-shadow: 0 4px 18px rgba(20, 14, 40, 0.30), 0 0 18px rgba(217, 190, 140, 0.30);
+        }
+        #bubble.ach .b-title { color: #e8cfa4; }
+        #bubble.ach .b-msg .text { color: #f2e4c6; }
+        @keyframes flash {
+            0%, 100% { transform: scale(1); }
+            40% { transform: scale(1.035); box-shadow: 0 0 26px rgba(217, 139, 166, 0.4); }
+        }
+        /* 底部按钮行 */
+        .b-actions {
+            /* 第十五轮(用户反馈5): 底栏禁止收缩, 保证 4 个按钮永远可见可点, 不被 #tellBox 顶掉 */
+            flex: none;
+            display: flex; align-items: center; gap: 6px;
+            padding: 0 8px 7px 8px;
+            -webkit-app-region: no-drag;
+        }
+        /* 2026-09-10 UI 统一: 按钮从紫系换夜青+暖金(与主窗粉紫明确区分, 修视觉疲劳) */
+        .b-actions button {
+            border: 1px solid rgba(126, 196, 214, 0.30);
+            background: rgba(255,255,255,0.06);
+            color: #d8edf3; border-radius: 12px; /* 11px 非阶梯 */
+            font-size: 12px; /* 11.52px */ padding: 3px 8px; cursor: pointer;
+            transition: all 0.18s;
+            text-shadow: 0 1px 3px rgba(6, 20, 32, 0.85);
+        }
+        .b-actions button:hover { background: rgba(126, 196, 214, 0.20); color: #fff; transform: translateY(-1px); box-shadow: 0 3px 10px rgba(126, 196, 214, 0.22); }
+        .b-actions .chat-btn { background: linear-gradient(135deg, rgba(217,180,120,0.48), rgba(126,196,214,0.34)); color: #fff; border-color: rgba(217, 190, 140, 0.45); }
+        /* 第63轮: #7fa9bd 在 0.88 气泡上只有 4.16:1, 提亮到 #a9d3e4 (5.9:1) */
+        .b-actions .close { margin-left: auto; background: transparent; border-color: transparent; color: #a9d3e4; font-size: 13px; /* 12.8px */ }
+        .b-actions .close:hover { color: #ffd9a0; background: none; transform: none; box-shadow: none; }
+        /* 内嵌输入层: 气泡内直接告诉她你在用哪个窗口(升级版: 桌面窗口折叠选项卡) */
+        #tellBox {
+            /* 第十五轮(用户反馈5 根因): 原来没有 flex 约束, 展开"选择窗口"后
+               (details + #petWinList 最多 225px + 输入框 + 两行按钮) 总高远超窗口 560px,
+               flex 收缩导致各块互相重叠。现在让它成为唯一的可伸缩+可滚动区。 */
+            display: none; flex-direction: column; gap: 6px;
+            flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+            padding: 4px 10px 8px 10px;
+            -webkit-app-region: no-drag;
+        }
+        #tellBox details {
+            border: 1px solid rgba(126, 196, 214, 0.28);
+            border-radius: 12px; background: rgba(10, 30, 46, 0.5);
+            padding: 5px 10px;
+        }
+        #tellBox summary { cursor: pointer; color: #cdeaf3; font-size: 12px; /* 12.48px */ /* 第十三轮: 提亮放大 */ text-shadow: 0 1px 3px rgba(6,20,32,0.9); user-select: none; }
+        /* 窗口筛选(2026-09-09): 一键定位目标窗口, 不用滚半天 */
+        #petWinFilter {
+            width: 100%; margin-top: 6px; padding: 6px 10px; border-radius: 12px; /* 10px 非阶梯 */
+            background: rgba(6, 20, 32, 0.5); border: 1.2px solid rgba(126, 196, 214, 0.35);
+            color: #e8f4f7; font-size: 12px; /* 11.84px */ outline: none;
+        }
+        #petWinFilter:focus { border-color: #7ec4d6; }
+        #petWinCount { color: #c6e2ec; font-size: 12px; /* 11.52px */ /* 第十三轮: 提亮 */ margin: 4px 2px 0; }
+        /* 窗口列表: 支持按住快速拖滑(惯性), 也能滚轮
+           2026-09-09 P1 修复: max-height 380→240, 确保面板内容不超出 setPetHeight(560) 的真实窗口,
+           输入框/取消/告诉她/陪我一起看按钮全部可达 */
+        #petWinList {
+            max-height: min(225px, 30vh); overflow-y: auto; display: flex; flex-direction: column; gap: 4px; margin-top: 5px; /* 第十五轮: 随窗口高度自适应 */
+            cursor: grab; touch-action: pan-y;
+            /* 滚动暗示: 上下渐隐, 一眼看出还能滑 */
+            -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 22px, #000 calc(100% - 22px), transparent 100%);
+            mask-image: linear-gradient(180deg, transparent 0, #000 22px, #000 calc(100% - 22px), transparent 100%);
+        }
+        #petWinList.dragging { cursor: grabbing; }
+        #petWinList::-webkit-scrollbar { width: 6px; }
+        #petWinList::-webkit-scrollbar-thumb { background: rgba(126, 196, 214, 0.3); border-radius: 999px; /* 3px -> 胶囊 */ }
+        .pet-win-item {
+            padding: 5px 8px; border-radius: 8px; /* 9px 非阶梯 */ cursor: pointer;
+            font-size: 12px; /* 12.16px */ color: #f2fbff; text-shadow: 0 1px 3px rgba(6,20,32,0.95); /* 第十五轮: 0.7->0.76 提亮(小字对比度不足) */
+            background: rgba(126, 196, 214, 0.08); border: 1px solid rgba(126, 196, 214, 0.18);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            flex-shrink: 0; /* 2026-09-09 终审修复: flex 列表会把 12 项压到 16px/项导致文字裁切+列表滚不动(240 全被占) */
+        }
+        .pet-win-item:hover { background: rgba(126, 196, 214, 0.18); }
+        #tellBox.show { display: flex; }
+        #tellInput {
+            width: 100%; padding: 8px 12px; border-radius: 14px;
+            background: rgba(10, 30, 46, 0.5); border: 1.5px solid rgba(126, 196, 214, 0.4);
+            color: #eef8fa; font-size: 13px; /* 13.12px */ outline: none;
+        }
+        #tellInput:focus { border-color: #7ec4d6; }
+        .tell-actions { display: flex; gap: 6px; justify-content: flex-end; }
+        .tell-actions button {
+            border: 1px solid rgba(126, 196, 214, 0.35);
+            background: rgba(255,255,255,0.06); color: #d8edf3;
+            border-radius: 12px; font-size: 11px; /* 11.2px */ padding: 3px 12px; cursor: pointer;
+        }
+        .tell-actions .ok { background: linear-gradient(135deg, rgba(126,196,214,0.42), rgba(217,180,120,0.35)); color: #f4fdff; }
+        .tell-watch {
+            /* 2026-09-13 第21轮修: 原 width:100% 对两个 .tell-watch 都生效 ——
+               #bWatch 有内联 flex:1 会收缩, #bWatchDur 是 flex:none 不收缩, 于是被撑成 270px(应约40px),
+               右侧 112px(41%) 溢出 #tellBox 被裁掉(实测 right=397 / 视口 300)。
+               改为 width:auto 让按钮回到内容宽度, 由父 flex 行分配(🎬 占满剩余, ⏱ 内容宽)。 */
+            margin-top: 2px; width: auto; text-align: center;
+            border: 1px solid rgba(126, 196, 214, 0.42);
+            background: linear-gradient(135deg, rgba(126,196,214,0.24), rgba(217,180,120,0.18));
+            color: #dff5fa; border-radius: 12px; font-size: 12px; /* 11.52px */ padding: 6px 10px; cursor: pointer;
+            transition: all 0.18s; text-shadow: 0 1px 3px rgba(6, 20, 32, 0.9);
+        }
+        .tell-watch:hover { background: linear-gradient(135deg, rgba(126,196,214,0.40), rgba(217,180,120,0.28)); transform: translateY(-1px); }
+        .tell-watch:disabled { opacity: 0.55; cursor: wait; transform: none; }
+        /* 第137轮 W3: 白天改暖纸 + 暖墨 + 深玫（与主窗/聊天窗同一套语言）；夜间不动。 */
+        @keyframes breathe-day {
+            0%, 100% { box-shadow: 0 4px 14px rgba(74, 56, 34, 0.14), 0 0 8px rgba(150, 86, 109, 0.10); }
+            50% { box-shadow: 0 4px 20px rgba(74, 56, 34, 0.20), 0 0 16px rgba(150, 86, 109, 0.16); }
+        }
+        body.day #bubble {
+            background: linear-gradient(150deg, rgba(252, 248, 240, 0.95), rgba(246, 238, 225, 0.95));
+            border-color: rgba(92, 74, 52, 0.24);
+            color: #2B2620;
+            animation-name: breathe-day;
+        }
+        body.day #bubble::after { background: linear-gradient(100deg, transparent, rgba(255, 253, 248, 0.55), transparent); }
+        body.day #bubble.ach { border-color: rgba(150, 110, 50, 0.55); animation: none; box-shadow: 0 4px 18px rgba(90, 66, 30, 0.16), 0 0 18px rgba(170, 130, 60, 0.20); }
+        body.day .b-title { color: #84485E; text-shadow: none; }
+        body.day .b-sub { color: #6E6355; text-shadow: none; }
+        body.day .b-msg { color: #2B2620; }
+        body.day .b-msg .text { text-shadow: none; }
+        body.day .b-msg .icon { filter: none; }
+        body.day #bubble.alert .b-msg .text { color: #8E2F52; }
+        body.day #bubble.ach .b-title { color: #8A6A3A; }
+        body.day #bubble.ach .b-msg .text { color: #6B5318; }
+        body.day .avatar { border-color: rgba(92, 74, 52, 0.30); background: #F3EBDD; box-shadow: 0 0 0 2px rgba(255, 253, 248, 0.85), 0 2px 10px rgba(74, 56, 34, 0.18); }
+        body.day .avatar-wrap .dot { border-color: rgba(255, 253, 248, 0.95); }
+        body.day .b-actions button { border-color: rgba(92, 74, 52, 0.22); background: #FFFDF8; color: #4A4238; text-shadow: none; }
+        body.day .b-actions button:hover { background: rgba(150, 86, 109, 0.12); color: #84485E; box-shadow: 0 3px 10px rgba(74, 56, 34, 0.14); }
+        body.day .b-actions .chat-btn { background: linear-gradient(135deg, #96566D, #84485E); color: #FFF9F0; border-color: #84485E; }
+        body.day .b-actions .close { color: #6E6355; background: transparent; border-color: transparent; }
+        body.day .b-actions .close:hover { color: #84485E; }
+        body.day #tellBox details { background: rgba(255, 253, 248, 0.92); border-color: rgba(92, 74, 52, 0.20); }
+        body.day #tellBox summary { color: #4A4238; text-shadow: none; }
+        body.day #petWinFilter, body.day #tellInput { background: #FFFDF8; border-color: rgba(92, 74, 52, 0.24); color: #2B2620; }
+        body.day #petWinCount { color: #6E6355; }
+        body.day .pet-win-item { color: #2B2620; text-shadow: none; background: rgba(150, 86, 109, 0.07); border-color: rgba(92, 74, 52, 0.16); }
+        body.day .pet-win-item:hover { background: rgba(150, 86, 109, 0.14); }
+        body.day #petWinList::-webkit-scrollbar-thumb { background: rgba(92, 74, 52, 0.30); }
+        body.day .tell-actions button { border-color: rgba(92, 74, 52, 0.24); background: #FFFDF8; color: #4A4238; }
+        body.day .tell-actions .ok { background: linear-gradient(135deg, #96566D, #84485E); color: #FFF9F0; }
+        body.day .tell-watch { border-color: rgba(150, 86, 109, 0.34); background: rgba(150, 86, 109, 0.8); color: #FFF9F0; text-shadow: none; }
+        body.day .tell-watch:hover { background: rgba(132, 72, 94, 0.88); }
+
+            /* ===== 第64轮: 键盘焦点可见性 ===== */
+        /* 很多输入控件写了内联 outline:none，浏览器默认焦点环在日间只有 2:1、宽度 1px，
+           键盘用户看不出焦点在哪。这里统一给可见焦点环（暗色主题亮粉、日间深玫瑰），
+           用 !important 压过内联 outline:none，但只在 :focus-visible 时出现，
+           鼠标点击不会出现环。 */
+        :focus-visible {
+            outline: 2px solid #ff9ec4 !important;
+            outline-offset: 2px !important;
+        }
+        body.day :focus-visible {
+            outline-color: #84485E !important;
+        }
+</style>
+</head>
+<body>
+    <!-- 第67轮: tabindex + aria-label 让键盘用户也能走到气泡卡; Enter/空格 等价于「双击打开聊天」 -->
+    <div id="bubble" tabindex="0" aria-label="跟玥玥说话（按回车打开聊天小窗）">
+        <div class="b-head">
+            <div class="avatar-wrap">
+                <img class="avatar" src="yueyue_avatar.png" alt="玥玥">
+                <span class="dot"></span>
+            </div>
+            <div>
+                <div class="b-title">玥玥</div>
+                <div class="b-sub" id="bSub">她说的话会出现在这里</div>
+            </div>
+        </div>
+        <div class="b-msg">
+            <span class="icon" id="bIcon">🌙</span>
+            <div class="text" id="bText">她安静地陪着你（点击说话）</div>
+        </div>
+        <div id="tellBox">
+            <details id="petWinPicker">
+                <summary>🪟 选择窗口（展开自动列出）</summary>
+                <input type="text" id="petWinFilter" placeholder="🔍 输入关键词筛选窗口…">
+                <div id="petWinCount"></div>
+                <div id="petWinList"><span style="color:#7fa9bd; font-size:11px;">点击展开自动枚举窗口…</span></div>
+            </details>
+            <input type="text" id="tellInput" placeholder="你在用哪个窗口？如：我的世界、微信…">
+            <div class="tell-actions">
+                <button id="tellCancel">取消</button>
+                <button class="ok" id="tellOk">告诉她</button>
+            </div>
+            <div style="display:flex; gap:6px; align-items:stretch; margin-top:2px;">
+                <button class="tell-watch" id="bWatch" title="连续看你的窗口画面, 完整看一小段剧情再说话" style="flex:1; margin-top:0; white-space:nowrap;">🎬 陪我看 12 秒</button>
+                <button class="tell-watch" id="bWatchDur" title="点击切换陪看时长（5/12/20/30 秒，主窗口同款设置）" style="flex:none; width:auto; margin-top:0; padding:6px 11px;">⏱</button>
+            </div>
+        </div>
+        <div class="b-actions">
+            <button class="chat-btn" id="bChat" title="打开聊天小窗">💬</button>
+            <button class="chat-btn" id="bMic" title="语音聊天: 打开聊天窗并开始录音">🎤</button>
+            <button id="bFocus" title="指定观察窗口(看我)">👀</button>
+            <button class="close" id="bClose" title="收起气泡（重启后会回来）">✕</button>
+        </div>
+    </div>
+    <script src="shared.js"></script>
+    <script src="analytics.js"></script>
+    <script src="soul.js"></script>
+    <script src="pet.js"></script>
+
+<style id="reduce-motion-css">
+/* 2026-10-24 第86轮: 系统「减少动态效果」下抑制装饰性动画/过渡(保留状态变化, 只是瞬时完成) */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+</body>
+</html>

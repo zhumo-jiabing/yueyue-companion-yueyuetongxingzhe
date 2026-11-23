@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self'; connect-src 'self'">
+    <title>和玥玥玩游戏</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(180deg, #0e0c20 0%, #171234 60%, #221543 100%);
+            color: #e9e4f2; font-family: 'Microsoft YaHei', sans-serif;
+            height: 100vh; display: flex; flex-direction: column; overflow: hidden; user-select: none;
+        }
+        body::before {
+            content: ''; position: fixed; inset: 0; pointer-events: none;
+            background-image:
+                radial-gradient(1.5px 1.5px at 12% 18%, rgba(255,255,255,0.5), transparent),
+                radial-gradient(2px 2px at 55% 8%, rgba(190,165,255,0.45), transparent),
+                radial-gradient(1px 1px at 78% 30%, rgba(255,255,255,0.4), transparent),
+                radial-gradient(2px 2px at 28% 68%, rgba(180,150,255,0.4), transparent),
+                radial-gradient(1.5px 1.5px at 85% 72%, rgba(255,255,255,0.45), transparent),
+                radial-gradient(1px 1px at 45% 88%, rgba(210,180,255,0.4), transparent);
+        }
+        header {
+            height: 46px; flex: none; display: flex; align-items: center; justify-content: space-between;
+            padding: 0 14px; border-bottom: 1px solid rgba(255,255,255,0.07);
+            background: rgba(10, 8, 22, 0.55);
+        }
+        header h3 { color: #ffb4c8; font-size: 0.95em; letter-spacing: 1px; }
+        header button { background: none; border: none; color: #8f89a8; font-size: 1.1em; cursor: pointer; }
+        header button:hover { color: #ff9ec0; }
+        #menu { flex: none; display: flex; flex-direction: column; gap: 9px; padding: 18px 16px; }
+        .game-card {
+            display: flex; align-items: center; gap: 12px; padding: 13px 16px; border-radius: 14px; cursor: pointer;
+            background: linear-gradient(150deg, rgba(110,130,255,0.14), rgba(255,107,157,0.09));
+            border: 1px solid rgba(150,140,220,0.3); transition: transform 0.18s ease, background 0.18s ease;
+        }
+        .game-card:hover { transform: translateY(-2px); background: linear-gradient(150deg, rgba(110,130,255,0.24), rgba(255,107,157,0.16)); }
+        .game-card .ico { font-size: 1.6em; }
+        .game-card .nm { font-weight: bold; color: #f2edfb; font-size: 0.95em; }
+        .game-card .ds { color: #8f89a8; font-size: 0.72em; margin-top: 2px; }
+        #log { flex: 1; overflow-y: auto; padding: 12px 14px; position: relative; }
+        #log::-webkit-scrollbar { width: 4px; }
+        #log::-webkit-scrollbar-thumb { background: rgba(255,107,157,0.5); border-radius: 8px; }
+        .line {
+            margin: 7px 0; padding: 10px 14px; border-radius: 15px; max-width: 92%;
+            white-space: pre-wrap; word-wrap: break-word; line-height: 1.65; font-size: 0.92em;
+            animation: fadeIn 0.3s ease; background: rgba(255,255,255,0.07); color: #ece7f6;
+        }
+        .line.hers { border-bottom-left-radius: 4px; }
+        /* 第62轮: 原来 .82 透明度会让窗口背景透上来, 白字实测 3.69:1; 改成不透明深玫瑰 #b1456f (5.32:1) */
+        .line.user { background: #b1456f; color: #fff; margin-left: auto; border-bottom-right-radius: 4px; max-width: 78%; }
+        .line.voice { background: rgba(58,44,92,0.88); border-left: 3px solid #b9a5ff; color: #e9e2ff; font-size: 0.8em; }
+        .line.result {
+            background: linear-gradient(135deg, rgba(255,180,90,0.16), rgba(150,120,220,0.12));
+            border: 1px solid rgba(255,200,120,0.4); color: #ffe2c2; text-align: center; font-weight: bold;
+        }
+        .streaming::after { content: '▌'; color: #ffb4c8; animation: caret 0.9s steps(1) infinite; }
+        @keyframes caret { 50% { opacity: 0; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+        .cards { display: flex; gap: 7px; align-items: center; margin: 7px 0; flex-wrap: wrap; }
+        .card-face {
+            padding: 7px 11px; border-radius: 9px; font-weight: bold; font-size: 1.05em;
+            background: rgba(255,255,255,0.09); border: 1px solid rgba(255,255,255,0.2); color: #f2edfb;
+        }
+        .card-face.back { background: rgba(110,130,255,0.2); border: 1px dashed rgba(150,140,255,0.5); color: #9da8ff; }
+        .card-face .red { color: #ff9ec0; }
+        .cards .who { color: #8f89a8; font-size: 0.75em; margin-right: 4px; }
+        #actions {
+            flex: none; display: flex; gap: 8px; flex-wrap: wrap; padding: 12px 14px 14px;
+            border-top: 1px solid rgba(255,255,255,0.07); background: rgba(10,8,22,0.45);
+        }
+        #actions button {
+            padding: 9px 15px; border-radius: 17px; cursor: pointer; font-size: 0.88em; flex: 1;
+            background: rgba(255,107,157,0.16); border: 1px solid rgba(255,150,200,0.35); color: #ffd9e6;
+            transition: background 0.15s ease, transform 0.15s ease;
+        }
+        #actions button:hover:not(:disabled) { background: rgba(255,107,157,0.34); transform: translateY(-1px); }
+        #actions button:disabled { opacity: 0.4; cursor: not-allowed; }
+        #actions button.ghost { background: transparent; border-color: rgba(150,140,180,0.3); color: #8f89a8; font-size: 0.75em; }
+        #actions input {
+            flex: 1; min-width: 90px; padding: 9px 13px; border-radius: 17px;
+            background: rgba(0,0,0,0.35); border: 2px solid rgba(255,150,200,0.22); color: #fff; font-size: 0.9em; outline: none;
+        }
+        #actions input:focus { border-color: #ff6b9d; }
+        /* 第53轮: 对比度审计 3.91:1 -> 提亮 */ .hint { color: #a9a1c2; font-size: 0.68em; padding: 0 14px 4px; text-align: right; }
+        /* 第58轮: 昼夜模式跟随主窗 —— 白天不跟着变的话, 游戏窗会是一块黑屏压在浅色主窗旁边 */
+        /* 第137轮 W3: 白天改暖纸 + 暖墨 + 深玫（与主窗同一套语言）；夜间不动。 */
+        body.day {
+            background: linear-gradient(180deg, #F8F2E7 0%, #F2E9DB 60%, #EFE5D4 100%);
+            color: #2B2620;
+        }
+        body.day::before { background-image: none; }
+        body.day header { background: rgba(252, 248, 240, 0.82); border-bottom-color: rgba(92, 74, 52, 0.14); }
+        body.day header h3 { color: #84485E; }
+        body.day header button { color: #6E6355; }
+        body.day header button:hover { color: #84485E; }
+        body.day .game-card { background: #FFFDF8; border-color: rgba(92, 74, 52, 0.18); }
+        body.day .game-card:hover { background: #FFFEFA; border-color: rgba(150, 86, 109, 0.30); }
+        body.day .game-card .nm { color: #2B2620; }
+        body.day .game-card .ds { color: #6E6355; }
+        body.day #log::-webkit-scrollbar-thumb { background: rgba(92, 74, 52, 0.28); }
+        body.day .line { background: #FFFDF8; color: #2B2620; }
+        body.day .line.user { background: #96566D; color: #FFF9F0; }
+        body.day .line.voice { background: #F7F0E4; border-left-color: #96566D; color: #4A4238; }
+        body.day .line.result { background: linear-gradient(135deg, rgba(196, 148, 72, 0.16), rgba(150, 86, 109, 0.10)); border-color: rgba(150, 110, 50, 0.42); color: #6B4A12; }
+        body.day .streaming::after { color: #96566D; }
+        body.day .card-face { background: #FFFDF8; border-color: rgba(92, 74, 52, 0.22); color: #2B2620; }
+        body.day .card-face.back { background: rgba(150, 86, 109, 0.10); border-color: rgba(150, 86, 109, 0.42); color: #84485E; }
+        body.day .cards .who { color: #6E6355; }
+        body.day #actions { background: rgba(252, 248, 240, 0.88); border-top-color: rgba(92, 74, 52, 0.14); }
+        body.day #actions button { background: rgba(150, 86, 109, 0.10); border-color: rgba(150, 86, 109, 0.34); color: #84485E; }
+        body.day #actions button:hover:not(:disabled) { background: rgba(150, 86, 109, 0.18); }
+        body.day #actions button.ghost { background: transparent; border-color: rgba(92, 74, 52, 0.26); color: #4A4238; }
+        body.day #actions input { background: #FFFDF8; border-color: rgba(92, 74, 52, 0.22); color: #2B2620; }
+        body.day #actions input:focus { border-color: #96566D; }
+        body.day .hint { color: #6E6355; }
+
+        /* ===== 守夜 (canvas 塔防, night.js) ===== */
+        #nightWrap { flex: 1; min-height: 0; display: none; flex-direction: column; position: relative; }
+        #nightSay { flex: none; height: 40px; overflow: hidden; padding: 4px 48px 4px 14px; font-size: 0.8em; line-height: 1.55; color: #cfc6e8; }
+        #nightCanvas { flex: none; width: 100%; max-width: 400px; height: auto; display: block; margin: 0 auto; }
+        #nightBar { flex: none; display: flex; gap: 6px; padding: 8px 10px 10px; border-top: 1px solid rgba(255,255,255,0.07); background: rgba(10,8,22,0.45); }
+        #nightBar button { flex: 1; padding: 7px 2px; border-radius: 12px; cursor: pointer; font-size: 0.76em; background: rgba(110,130,255,0.14); border: 1px solid rgba(150,140,220,0.3); color: #e9e4f2; line-height: 1.35; }
+        #nightBar button.back { flex: 0 0 34px; }
+        #nightBar button.sel { background: rgba(255,180,90,0.22); border-color: rgba(255,200,120,0.55); color: #ffe2c2; }
+        #nightBar button:disabled { opacity: 0.45; cursor: not-allowed; }
+        #nightBar button.word { background: rgba(255,107,157,0.16); border-color: rgba(255,150,200,0.35); color: #ffd9e6; }
+        /* r196 S2: 波间花钱抉择行(软, 可选, 无焦虑; 仅波间 prep 显示) */
+        #nightChoice { flex: none; display: none; gap: 6px; padding: 6px 10px 0; }
+        #nightChoice button { flex: 1; padding: 6px 2px; border-radius: 11px; cursor: pointer; font-size: 0.74em; line-height: 1.3; background: rgba(255,180,90,0.10); border: 1px solid rgba(255,200,120,0.3); color: #ffe2c2; }
+        #nightChoice button:hover:not(:disabled) { background: rgba(255,180,90,0.2); }
+        #nightChoice button.sel { background: rgba(255,180,90,0.26); border-color: rgba(255,200,120,0.6); }
+        #nightChoice button:disabled { opacity: 0.5; cursor: default; }
+        #nightSettle { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; background: rgba(14,12,32,0.78); text-align: center; padding: 20px; }
+        #nightSettle .fact { color: #ffe2c2; font-size: 0.95em; line-height: 1.8; }
+        #nightSettle button { padding: 10px 22px; border-radius: 18px; cursor: pointer; background: rgba(255,180,90,0.18); border: 1px solid rgba(255,200,120,0.5); color: #ffe2c2; font-size: 0.9em; }
+        body.day #nightSay { color: #4A4238; }
+        body.day #nightBar { background: rgba(252,248,240,0.88); border-top-color: rgba(92,74,52,0.14); }
+        body.day #nightBar button { background: #FFFDF8; border-color: rgba(92,74,52,0.22); color: #2B2620; }
+        body.day #nightBar button.sel { background: rgba(196,148,72,0.18); border-color: rgba(150,110,50,0.5); color: #6B4A12; }
+        body.day #nightBar button.word { background: rgba(150,86,109,0.10); border-color: rgba(150,86,109,0.34); color: #84485E; }
+        body.day #nightChoice button { background: #FFFDF8; border-color: rgba(150,110,50,0.4); color: #6B4A12; }
+        body.day #nightChoice button:hover:not(:disabled) { background: rgba(196,148,72,0.16); }
+        body.day #nightChoice button.sel { background: rgba(196,148,72,0.22); border-color: rgba(150,110,50,0.6); }
+        body.day #nightSettle { background: rgba(248,242,231,0.86); }
+        body.day #nightSettle .fact { color: #6B4A12; }
+        body.day #nightSettle button { background: rgba(150,86,109,0.10); border-color: rgba(150,86,109,0.4); color: #84485E; }
+        /* r193 F4: 守夜声音开关 (localStorage yueyue_night_muted 持久化; 仅守夜时可见) */
+        #nightMute { position: absolute; top: 4px; right: 8px; z-index: 5; width: 30px; height: 30px; padding: 0; line-height: 1; font-size: 0.9em; cursor: pointer; border-radius: 9px; background: rgba(10,8,22,0.4); border: 1px solid rgba(150,140,220,0.3); color: #e9e4f2; }
+        #nightMute:hover { border-color: rgba(255,200,120,0.55); }
+        body.day #nightMute { background: rgba(252,248,240,0.85); border-color: rgba(92,74,52,0.25); color: #2B2620; }
+
+        /* ===== 第64轮: 键盘焦点可见性 ===== */
+        /* 很多输入控件写了内联 outline:none，浏览器默认焦点环在日间只有 2:1、宽度 1px，
+           键盘用户看不出焦点在哪。这里统一给可见焦点环（暗色主题亮粉、日间深玫瑰），
+           用 !important 压过内联 outline:none，但只在 :focus-visible 时出现，
+           鼠标点击不会出现环。 */
+        :focus-visible {
+            outline: 2px solid #ff9ec4 !important;
+            outline-offset: 2px !important;
+        }
+        body.day :focus-visible {
+            outline-color: #84485E !important;
+        }
+</style>
+</head>
+<body>
+    <header>
+        <h3>🎮 和玥玥玩一局</h3>
+        <button id="closeBtn" title="关闭">✕</button>
+    </header>
+    <div id="menu">
+        <div class="game-card" data-game="rps"><span class="ico">✊</span><span><div class="nm">猜拳</div><div class="ds">石头剪刀布 · 三局两胜</div></span></div>
+        <div class="game-card" data-game="poker"><span class="ico">🃏</span><span><div class="nm">扑克比大小</div><div class="ds">两张起 · 谁离 21 点近谁赢</div></span></div>
+        <div class="game-card" data-game="number"><span class="ico">🔢</span><span><div class="nm">猜数字</div><div class="ds">1-100 · 她心里藏了一个数</div></span></div>
+        <div class="game-card" data-game="night"><span class="ico">🏮</span><span><div class="nm">守夜</div><div class="ds">摆灯，守到天亮</div></span></div>
+    </div>
+    <div id="nightWrap">
+        <button id="nightMute" title="声音开关" aria-label="声音开关">🔊</button>
+        <div id="nightSay"></div>
+        <canvas id="nightCanvas" width="400" height="420"></canvas>
+        <div id="nightChoice"></div>
+        <div id="nightBar"></div>
+    </div>
+    <div id="log"></div>
+    <div id="actions"></div>
+    <div class="hint" id="hint">玩完自动关窗，结果会回到聊天区</div>
+
+    <script src="config.js"></script>
+    <script src="shared.js"></script>
+    <script src="soul.js"></script>
+    <script src="night.js"></script>
+    <script src="game.js"></script>
+
+<style id="reduce-motion-css">
+/* 2026-10-24 第86轮: 系统「减少动态效果」下抑制装饰性动画/过渡(保留状态变化, 只是瞬时完成) */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+</body>
+</html>

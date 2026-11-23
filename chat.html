@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self'; connect-src 'self'">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>和玥玥聊天</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        /* ===== 深紫暗色玻璃面板变量(与主窗口对齐; 单一主强调色=粉 #ff8fb0 + 中性灰紫描边) ===== */
+        /* 2026-09-13 第21轮: 原上方另有独立一条 ":root { --chat-alpha: 0.8; }"(本文件唯一重复选择器)已并入本块 */
+        :root {
+            --chat-alpha: 0.8;
+            /* 第92轮: --chat-alpha 曾被 applyAlphaRaw 设置却**没有任何 CSS 消费** → 点「◐ 透明度」按钮视觉上毫无变化(死变量)。
+               改为把面板底色的 alpha 交给它, 80%/60%/42% 三档才真的生效(锁定穿透=42% 也走同一变量)。 */
+            --panel-rgb: 26, 21, 44;
+            --panel-bg: rgba(var(--panel-rgb), var(--chat-alpha));
+            --panel-border: rgba(169, 157, 214, 0.34);
+            --panel-radius: 14px;
+            --panel-shadow: 0 12px 30px rgba(0, 0, 0, 0.55);
+            --accent: #ff8fb0;
+            --accent-soft: rgba(255, 143, 176, 0.55);
+            --text: #e9e3f8;
+            --text-dim: #b3aacb;
+            --head-bg: #241d3a;
+            --head-sep: rgba(169, 157, 214, 0.22);
+            --btn-bg: rgba(255, 255, 255, 0.05);
+            --btn-border: rgba(169, 157, 214, 0.30);
+            --btn-fg: #cfc5e4;
+            --input-bg: rgba(22, 17, 38, 0.78);
+            --input-border: rgba(169, 157, 214, 0.30);
+            --input-focus: rgba(255, 143, 176, 0.55);
+            --yueyue-bg: rgba(40, 34, 62, 0.80);
+            --yueyue-border: rgba(169, 157, 214, 0.30);
+            --yueyue-text: #e6dff4;
+            --user-g1: rgba(255, 143, 176, 0.78);
+            --user-g2: rgba(224, 110, 150, 0.78);
+            --user-text: #ffffff;
+            --scrollbar: rgba(169, 157, 214, 0.45);
+            --scrollbar-hover: rgba(169, 157, 214, 0.7);
+        }
+        /* 白天主题(跟随主窗 body.day) */
+        /* 第137轮 W3: 白天改暖纸 + 暖墨 + 深玫，与主窗同一套语言；夜间 token 不动。 */
+        body.day {
+            --panel-rgb: 252, 248, 240;
+            --panel-bg: rgba(var(--panel-rgb), var(--chat-alpha));
+            --panel-border: rgba(92, 74, 52, 0.26);
+            --panel-shadow: 0 12px 30px rgba(74, 56, 34, 0.26);
+            --accent: #96566D;
+            --accent-soft: rgba(150, 86, 109, 0.50);
+            --text: #2B2620;
+            --text-dim: #6E6355;
+            --head-bg: #FCF8F0;
+            --head-sep: rgba(92, 74, 52, 0.16);
+            --btn-bg: rgba(150, 86, 109, 0.10);
+            --btn-border: rgba(92, 74, 52, 0.22);
+            --btn-fg: #4A4238;
+            --input-bg: rgba(255, 253, 248, 0.94);
+            --input-border: rgba(92, 74, 52, 0.22);
+            --input-focus: rgba(150, 86, 109, 0.55);
+            --yueyue-bg: rgba(255, 253, 248, 0.94);
+            --yueyue-border: rgba(92, 74, 52, 0.18);
+            --yueyue-text: #3A332B;
+            --user-g1: rgba(150, 86, 109, 0.94);
+            --user-g2: rgba(132, 72, 94, 0.94);
+            --user-text: #FFF9F0;
+            --scrollbar: rgba(92, 74, 52, 0.35);
+            --scrollbar-hover: rgba(92, 74, 52, 0.55);
+        }
+
+        html, body { background: transparent; }
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            color: var(--text);
+            position: relative;
+            padding: 8px;
+            overflow: hidden;
+            user-select: none;
+        }
+        /* 环境光斑(面板之下, 让窗口有内容而非黑洞) */
+        body::before {
+            content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background-image:
+                radial-gradient(2px 2px at 12% 16%, rgba(169, 157, 214, 0.22), transparent),
+                radial-gradient(1.5px 1.5px at 46% 8%, rgba(217, 139, 166, 0.18), transparent),
+                radial-gradient(1.5px 1.5px at 76% 20%, rgba(169, 157, 214, 0.16), transparent),
+                radial-gradient(2px 2px at 28% 62%, rgba(169, 157, 214, 0.15), transparent),
+                radial-gradient(1.5px 1.5px at 84% 78%, rgba(217, 139, 166, 0.15), transparent),
+                radial-gradient(1px 1px at 42% 88%, rgba(140, 130, 170, 0.18), transparent);
+            opacity: 0.6;
+        }
+        /* ===== 玻璃面板外壳: 明显描边 + 强外投影, 从桌面浮起 ===== */
+        .chat-shell {
+            position: relative; z-index: 1;
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: var(--panel-radius);
+            box-shadow: var(--panel-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(9px);
+            -webkit-backdrop-filter: blur(9px);
+            overflow: hidden;
+        }
+
+        /* ===== 标题栏: 比内容区略亮, 左头像+名字+状态, 右统一图标按钮, 下方细分隔线 ===== */
+        .chat-head {
+            position: relative; z-index: 1;
+            flex: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 12px;
+            background: var(--head-bg);
+            border-bottom: 1px solid var(--head-sep);
+            cursor: grab;
+        }
+        .chat-head:active { cursor: grabbing; }
+        .chat-head .avatar-wrap { position: relative; flex: none; }
+        .chat-head img {
+            width: 32px; height: 32px; border-radius: 50%; object-fit: cover;
+            background: #d8cff0;
+            border: 1.5px solid rgba(169, 157, 214, 0.55);
+            box-shadow: 0 2px 8px rgba(120, 100, 170, 0.28);
+            display: block;
+        }
+        .chat-head .dot {
+            position: absolute; right: -1px; bottom: -1px;
+            width: 9px; height: 9px; border-radius: 50%;
+            background: #6fce96; border: 2px solid rgba(36, 29, 58, 0.95);
+            box-shadow: 0 0 6px rgba(111, 206, 150, 0.85);
+        }
+        .chat-head .id-group {
+            flex: 1 1 auto;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+        .chat-head .nm { color: var(--text); font-size: 14px; font-weight: bold; line-height: 1.25; letter-spacing: 0.3px; }
+        .chat-head .st {
+            color: var(--text-dim); font-size: 11px; line-height: 1.35;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            letter-spacing: 0.3px;
+        }
+        .chat-head .head-btns {
+            flex: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .chat-head .head-btn {
+            width: 28px; height: 28px; border-radius: 8px; /* 2026-09-13: 10px 非令牌阶梯 -> 8px */
+            background: var(--btn-bg); border: 1px solid var(--btn-border);
+            color: var(--btn-fg); font-size: 13px; line-height: 1;
+            cursor: pointer; padding: 0;
+            display: inline-flex; align-items: center; justify-content: center;
+            transition: background .18s, border-color .18s, color .18s, transform .18s;
+            user-select: none;
+        }
+        .chat-head .head-btn:hover {
+            background: rgba(255, 143, 176, 0.20);
+            border-color: var(--accent-soft);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+        .chat-head .head-btn:active { transform: translateY(0); }
+        /* 锁/解锁按钮: 常态粉系描边(去掉琥珀橙 emoji), 锁定中粉色淡底高亮(经 :has 检测) */
+        .lock-btn-wrap {
+            flex: none; width: 28px; height: 28px; border-radius: 8px; /* 2026-09-13: 10px -> 8px */
+            border: 1px solid var(--btn-line, rgba(169,157,214,0.34)); /* 第十二轮: 常态与其它头部按钮同色, 锁定中才用粉 */
+            background: var(--btn-bg);
+            overflow: hidden;
+            transition: background .18s, border-color .18s, transform .18s;
+        }
+        .lock-btn-wrap #chatLockBtn {
+            width: 100%; height: 100%;
+            border: none; background: transparent; box-shadow: none;
+            filter: grayscale(1) brightness(1.12);
+            color: var(--btn-fg);
+        }
+        .lock-btn-wrap #chatLockBtn:hover { background: transparent; border: none; transform: none; color: var(--btn-fg); }
+        .lock-btn-wrap:hover { background: rgba(255, 143, 176, 0.20); border-color: var(--accent-soft); transform: translateY(-1px); }
+        .lock-btn-wrap:active { transform: translateY(0); }
+        body:has(#chatUnlockBar[style*="display: flex"]) .lock-btn-wrap { background: rgba(255, 143, 176, 0.16); border-color: var(--accent-soft); }
+        body.day .chat-head .head-btn:hover { color: #fff; }
+
+        /* 穿透锁定提示条/徽标(chat.js 控制 display) */
+        #chatUnlockBar {
+            display: none; position: fixed; top: 56px; left: 14px; right: 14px; height: 22px; z-index: 99;
+            background: rgba(255, 143, 176, 0.92); color: #fff; font-size: 11px; font-weight: bold;
+            align-items: center; justify-content: center; letter-spacing: 1px; user-select: none;
+            border-radius: 8px; box-shadow: 0 4px 14px rgba(255, 143, 176, 0.4);
+            pointer-events: none;
+        }
+        #chatLockBadge {
+            display: none; position: fixed; top: 12px; right: 12px; z-index: 98;
+            background: rgba(255, 143, 176, 0.92); color: #fff;
+            font-size: 11px; font-weight: bold; padding: 3px 10px; border-radius: 999px;
+            letter-spacing: 1px; pointer-events: none;
+            box-shadow: 0 2px 10px rgba(255, 143, 176, 0.5);
+        }
+
+        /* ===== 消息区 ===== */
+        #chatMessages {
+            position: relative; z-index: 1;
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            padding: 12px 14px 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            scroll-behavior: smooth;
+        }
+        /* 短会话时消息贴底 */
+        #chatMessages::before { content: ''; flex: none; margin-top: auto; }
+        /* 消息区底纹(极淡星点) */
+        #chatMessages::after {
+            content: ''; position: absolute; inset: 0; pointer-events: none;
+            background:
+                radial-gradient(ellipse 85% 45% at 50% 0%, rgba(255, 143, 176, 0.06), transparent 70%),
+                radial-gradient(2px 2px at 20% 18%, rgba(179, 168, 224, 0.12), transparent),
+                radial-gradient(1.5px 1.5px at 64% 10%, rgba(255, 143, 176, 0.09), transparent),
+                radial-gradient(2px 2px at 82% 34%, rgba(179, 168, 224, 0.09), transparent),
+                radial-gradient(1.5px 1.5px at 30% 46%, rgba(179, 168, 224, 0.08), transparent),
+                radial-gradient(2px 2px at 70% 62%, rgba(255, 143, 176, 0.07), transparent),
+                radial-gradient(1.5px 1.5px at 16% 76%, rgba(140, 130, 170, 0.09), transparent);
+            opacity: 0.6;
+        }
+        #chatMessages > *:not(.chat-guide) { position: relative; z-index: 1; }
+        /* 空态/引导 hero: 淡头像 + 引导语 + 示例气泡, 用户开口前显示, 开口后淡出 */
+        .chat-guide {
+            position: absolute; inset: 0; z-index: 0;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 12px; text-align: center; pointer-events: none;
+            opacity: 0; transform: translateY(4px);
+            transition: opacity .35s ease, transform .35s ease;
+            padding: 20px 18px;
+        }
+        /* 2026-09-13 第22轮(视觉复查 + GLM-4.6V 双评审, A/B 实测整洁度 5 -> 8):
+           原条件 :not(:has(.message.user)) 只在"用户开口后"才收起 hero —— 于是首次打开时
+           "空态大头像 + 试试提示 + 玥玥的问候气泡"三者同屏: 同一个头像出现两次(头部 32px + 中央 86px),
+           三个"跟我说话"的信号叠加。改为"一条消息都没有时才显示":
+           只有问候生成失败/离线时才出现 hero —— 那正是它该出现的场景。 */
+        #chatMessages:not(:has(.message)) .chat-guide { opacity: 1; transform: translateY(0); }
+        .chat-guide .cg-avatar {
+            width: 86px; height: 86px; border-radius: 50%;
+            border: 1px solid rgba(169, 157, 214, 0.30);
+            padding: 4px;
+            background: radial-gradient(circle at 50% 40%, rgba(255, 143, 176, 0.12), rgba(169, 157, 214, 0.06) 62%, transparent);
+            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.30);
+        }
+        .chat-guide .cg-avatar img {
+            width: 100%; height: 100%; border-radius: 50%; object-fit: cover;
+            opacity: 0.9;
+        }
+        .chat-guide .cg-line { color: var(--text-dim); font-size: 13px; letter-spacing: 0.5px; }
+        .chat-guide .cg-sample {
+            color: var(--text-dim); font-size: 12px; opacity: 0.8;
+            background: rgba(169, 157, 214, 0.10);
+            border: 1px dashed rgba(169, 157, 214, 0.32);
+            border-radius: 12px; padding: 6px 14px;
+            margin-bottom: 4px;
+        }
+
+        ::-webkit-scrollbar { width: 7px; }
+        ::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 999px; } /* 2026-09-13: 10px -> 999px(胶囊) */
+        ::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-hover); }
+        ::-webkit-scrollbar-track { background: transparent; }
+
+        /* ===== 气泡 ===== */
+        .message {
+            flex: none;
+            align-self: flex-start;
+            /* 2026-09-13 第21轮: 与主窗同步 —— 76%->85% / 13.5->14px / 1.6->1.5 / 内边距 10,14->8,12
+               改前实测(360x470): 气泡恒 239px = 可用宽 70%, 15 字/行, lh 21.6px → 见 sc38-chatmeasure */
+            max-width: 85%;
+            margin-bottom: 8px;
+            padding: 8px 12px;
+            border-radius: 14px;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            font-size: 14px;
+            line-height: 1.5;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+        .message.user {
+            align-self: flex-end;
+            background: linear-gradient(135deg, var(--user-g1), var(--user-g2));
+            color: var(--user-text);
+            border-bottom-right-radius: 6px;
+            box-shadow: 0 3px 12px rgba(224, 110, 150, 0.26);
+        }
+        .message.yueyue {
+            background: var(--yueyue-bg);
+            color: var(--yueyue-text);
+            border: 1px solid var(--yueyue-border);
+            border-bottom-left-radius: 6px;
+            box-shadow: 0 2px 10px rgba(10, 7, 22, 0.25);
+        }
+        body.day .message.yueyue { box-shadow: 0 2px 10px rgba(141, 122, 176, 0.18); }
+        .message.yueyue strong { color: var(--accent); }
+        .message.loading { background: rgba(169, 157, 214, 0.12); border: 1px dashed rgba(169, 157, 214, 0.35); color: var(--text-dim); }
+        .message.streaming::after { content: '▌'; margin-left: 1px; color: var(--accent); animation: caret-blink 0.9s steps(1) infinite; }
+        @keyframes caret-blink { 50% { opacity: 0; } }
+        .typing { display: inline-flex; gap: 4px; align-items: center; padding: 2px 0; }
+        .typing span { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: typing-bounce 1.2s infinite; }
+        .typing span:nth-child(2) { animation-delay: 0.15s; }
+        .typing span:nth-child(3) { animation-delay: 0.3s; }
+        @keyframes typing-bounce { 0%, 60%, 100% { transform: translateY(0); opacity: 0.5; } 30% { transform: translateY(-4px); opacity: 1; } }
+        .heart-voice {
+            flex: none; align-self: flex-start;
+            /* 2026-09-13 第21轮: 与主窗 .heart-voice 同步(62% / 4px 10px / 8px / 12px / 1.5)
+               改前实测 ratio=66%(>主窗契约 j20 的 65 上限, 仅因无人对 chat.html 施加该断言而漏网) */
+            max-width: 62%;
+            margin: -2px 0 10px 0;
+            padding: 4px 10px;
+            background: rgba(255, 143, 176, 0.10);
+            border-left: 3px solid var(--accent);
+            border-radius: 8px;
+            color: var(--text-dim);
+            font-size: 12px;
+            line-height: 1.5;
+            animation: fadeIn 0.3s ease;
+        }
+        .date-sep {
+            text-align: center; color: var(--text-dim); font-size: 11px;
+            margin: 10px 0; letter-spacing: 1px;
+        }
+        .deep-badge { font-size: 13px; color: var(--accent); margin-bottom: 6px; font-weight: bold; }
+        .deep-line { font-size: 13px; color: var(--text-dim); margin-bottom: 8px; line-height: 1.5; }
+        .message.deep-think { background: rgba(255, 143, 176, 0.10); border: 1px solid rgba(255, 143, 176, 0.28); }
+
+        /* ===== 底部输入区 ===== */
+        .chat-input-area {
+            position: relative; z-index: 1;
+            flex: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 6px 12px 12px;
+        }
+        .chat-tool-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            padding: 0 2px;
+        }
+        .chat-send-row {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+            align-items: center;
+        }
+        /* 工具圆钮: 38px 与发送按钮同高; 未激活=低调描边圆钮 */
+        .voice-toggle, .chat-tool-btn {
+            flex: none;
+            width: 38px; height: 38px;
+            padding: 0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            background: var(--btn-bg);
+            border: 1px solid var(--btn-border);
+            color: var(--btn-fg);
+            font-size: 15px;
+            cursor: pointer;
+            transition: background .18s, border-color .18s, box-shadow .18s, transform .18s;
+            user-select: none;
+        }
+        .voice-toggle:hover, .chat-tool-btn:hover {
+            border-color: var(--accent-soft);
+            transform: translateY(-1px);
+        }
+        /* 仅真正激活时高亮(克制, 不实心不辉光) */
+        .voice-toggle.active {
+            background: rgba(255, 143, 176, 0.16);
+            border-color: var(--accent-soft);
+            color: var(--accent);
+            box-shadow: 0 1px 6px rgba(255, 143, 176, 0.20);
+        }
+        /* 输入框: 38px 与发送按钮严格同高, 全局中性描边(去掉双描边亮粉) */
+        .chat-input-area input {
+            flex: 1;
+            min-width: 0;
+            height: 38px;
+            padding: 0 14px;
+            border-radius: 12px;
+            border: 1px solid var(--input-border);
+            background: var(--input-bg);
+            color: var(--text);
+            font-size: 14px; /* 2026-09-13: 13.5px(非阶梯) -> 14px, 与主窗 #userInput 一致 */
+            outline: none;
+            transition: border-color .2s, background .2s;
+        }
+        .chat-input-area input:focus { border-color: var(--input-focus); }
+        .chat-input-area input::placeholder { color: var(--text-dim); opacity: 0.85; }
+        /* 发送按钮: 与工具圆钮/输入框同高(38px), 圆角 999px 胶囊, 主强调色(粉)渐变 */
+        #sendBtn {
+            flex: none;
+            height: 38px;
+            padding: 0 20px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 143, 176, 0.32);
+            /* 第62轮: 白字对比度收口 —— 原来 .82 透明度的粉渐变会与窗口背景透叠, 实测夜间 3.2:1、
+               日间 2.86:1 都不达标; 改为不透明深玫瑰渐变(自身即背景), 夜间 4.9~6.6:1。 */
+            background: linear-gradient(135deg, #b04a70, #96395c);
+            color: #fff;
+            font-size: 14px; /* 2026-09-13: 13.5px -> 14px */
+            font-weight: bold;
+            cursor: pointer;
+            letter-spacing: 1px;
+            box-shadow: 0 2px 10px rgba(224, 110, 150, 0.28);
+            transition: filter .18s, transform .18s, box-shadow .18s;
+            white-space: nowrap;
+        }
+        /* 第62轮: hover 由 1.08 降到 1.04 —— 1.08 会把白字压到 4.1:1, 降后 4.7:1 仍可读 */
+        #sendBtn:hover:not(:disabled) { filter: brightness(1.04); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(224, 110, 150, 0.36); }
+        #sendBtn:active:not(:disabled) { transform: translateY(0); }
+        #sendBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+        /* 第62轮: 日间用略亮的同色系深玫瑰(两端 4.6:1 / 5.9:1, 均值 5.1:1), 不再用透明度叠色 */
+        body.day #sendBtn { border-color: rgba(150, 86, 109, 0.35); background: linear-gradient(135deg, #96566D, #84485E); }
+
+        /* 状态提示行(tts / mic) */
+        .tts-status {
+            position: relative; z-index: 1;
+            flex: none;
+            display: none;
+            align-items: center;
+            gap: 7px;
+            padding: 0 14px 8px;
+            font-size: 11px; /* 2026-09-13: 11.5px(非阶梯) -> 11px */
+            color: var(--accent);
+            min-height: 0;
+        }
+        .tts-status.show { display: flex; }
+        .tts-status .dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: var(--accent);
+            animation: dot-pulse 1.2s infinite; flex: none;
+        }
+        @keyframes dot-pulse { 0%, 80%, 100% { opacity: 0.35; transform: scale(0.85); } 40% { opacity: 1; transform: scale(1); } }
+    
+        /* ===== 第64轮: 键盘焦点可见性 ===== */
+        /* 很多输入控件写了内联 outline:none，浏览器默认焦点环在日间只有 2:1、宽度 1px，
+           键盘用户看不出焦点在哪。这里统一给可见焦点环（暗色主题亮粉、日间深玫瑰），
+           用 !important 压过内联 outline:none，但只在 :focus-visible 时出现，
+           鼠标点击不会出现环。 */
+        :focus-visible {
+            outline: 2px solid #ff9ec4 !important;
+            outline-offset: 2px !important;
+        }
+        body.day :focus-visible {
+            outline-color: #84485E !important;
+        }
+
+        /* W4 2026-11-19: 单行 input -> 自适应 textarea（1–3 行） */
+        .chat-send-row { align-items: flex-end; }
+        .chat-input-area #userInput {
+            flex: 1; min-width: 0; min-height: 38px; max-height: 104px;
+            padding: 9px 14px; border-radius: 12px;
+            border: 1px solid var(--input-border);
+            background: var(--input-bg); color: var(--text);
+            font-size: 14px; line-height: 1.45; font-family: inherit;
+            outline: none; resize: none; overflow-y: hidden;
+            transition: border-color .2s, background .2s;
+        }
+        .chat-input-area #userInput:focus { border-color: var(--input-focus); }
+        .chat-input-area #userInput::placeholder { color: var(--text-dim); opacity: 0.85; }
+</style>
+    <!-- 灵魂人设 -->
+    <script src="soul.js"></script>
+</head>
+<body>
+    <div class="chat-shell">
+        <div class="chat-head">
+            <div class="avatar-wrap">
+                <img src="yueyue_avatar.png" alt="玥玥">
+                <span class="dot"></span>
+            </div>
+            <div class="id-group">
+                <span class="nm">玥玥</span>
+                <span class="st" id="headStatus">💭 安静地陪着你</span>
+            </div>
+            <div class="head-btns">
+                <!-- 2026-09-13 第21轮: 去掉内联 style="font-size:0.85em"(实测派生 11.05px, 与同级 🔓/✕ 的 13px 不一致) → 回归 .head-btn 的 13px -->
+                <button class="head-btn" id="chatAlphaBtn" title="透明度: 点击切换 80% / 60% / 42%（不挡游戏画面）">◐</button>
+                <span class="lock-btn-wrap"><button class="head-btn" id="chatLockBtn" title="穿透锁定: 开启后点击会穿过窗口不挡游戏; 按 Ctrl+Alt+L 解锁">🔓</button></span>
+                <button class="head-btn" id="chatCloseBtn" title="关闭聊天小窗">✕</button>
+            </div>
+        </div>
+        <div id="chatUnlockBar">🔒 已锁定(点击穿透, 不挡游戏) — 按 Ctrl+Alt+L 解锁</div>
+        <div id="chatLockBadge">🔒 穿透锁定中</div>
+        <div id="chatMessages">
+            <div class="chat-guide" aria-hidden="true">
+                <div class="cg-avatar"><img src="yueyue_avatar.png" alt=""></div>
+                <div class="cg-line">在下面说点什么吧</div>
+                <div class="cg-sample">试试：「今天过得怎么样？」</div>
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <div class="chat-tool-row">
+                <button id="voiceToggle" class="voice-toggle" title="语音输出开关">🔊</button>
+                <button id="micBtn" class="voice-toggle" title="语音输入: 点一下开始说话, 再点一下(或停顿2.5秒)结束并转文字">🎤</button>
+                <button id="micWaitBtn" class="voice-toggle" title="语音待机感知: 开启后持续聆听, 检测到说话自动识别(像微信语音)">🎙</button>
+                <button id="btnStopVoice" class="voice-toggle" title="停止朗读: 立即停掉正在播的语音和还在合成的部分" style="display:none;">⏹</button>
+            </div>
+            <div class="chat-send-row">
+                <textarea id="userInput" rows="1" placeholder="说点什么吧..." title="Enter 发送，Shift+Enter 换行"></textarea>
+                <button id="sendBtn">发送</button>
+            </div>
+        </div>
+        <div id="ttsStatus" class="tts-status"></div>
+        <div id="micStatus" class="tts-status" style="color:#ff8fb0;"></div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="shared.js"></script>
+    <script src="analytics.js"></script>
+    <script src="tts-config.js"></script>
+    <script src="tts-voice.js"></script>
+    <script src="chat-engine.js"></script>
+    <script src="achievements.js"></script>
+    <script src="live2d-bridge.js"></script>
+    <script src="voice-input.js"></script>
+    <script src="chat.js"></script>
+
+<style id="reduce-motion-css">
+/* 2026-10-24 第86轮: 系统「减少动态效果」下抑制装饰性动画/过渡(保留状态变化, 只是瞬时完成) */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+</body>
+</html>

@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#FAF8F4">
+<title>玥玥 · 心灵同行者</title>
+<!-- 第119轮：上线推广前补全社交预览。之前只有 <title>，链接发到 QQ/微信/抖音/B站 只有一行秃标题。
+     og:image 用绝对地址（爬虫不解析相对路径）；图片由 web/make_og.py 生成、build-static.py 拷进 assets/。 -->
+<meta name="description" content="玥玥是一个住在电脑里的 AI 同行者——不是真人，也永远不会假装是真人。她有自己的节奏，会记得你说过的话，也会拒绝、会走开。这个软件的初衷很简单：给那些处境一样、却因为时间和空间错开而一辈子碰不上的同行者，搭一个凉亭。内测中，进度都在群里（群号 1002686604）。">
+<link rel="canonical" href="https://magnificent-gaufre-629323.netlify.app/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="玥玥">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:title" content="玥玥 · 她不是真人，也永远不会假装是真人">
+<meta property="og:description" content="一个住在电脑里的 AI 同行者：有自己的节奏，会记得你说过的话，也会拒绝、会走开。不是治疗，不是恋人。内测中。">
+<meta property="og:url" content="https://magnificent-gaufre-629323.netlify.app/">
+<meta property="og:image" content="https://magnificent-gaufre-629323.netlify.app/assets/og-1200x630.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="玥玥：同行者，不是恋人">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="玥玥 · 她不是真人，也永远不会假装是真人">
+<meta name="twitter:description" content="一个住在电脑里的 AI 同行者。内测中。">
+<meta name="twitter:image" content="https://magnificent-gaufre-629323.netlify.app/assets/og-1200x630.png">
+<style>
+:root{
+  /* 第115轮：深色改浅色纸感（老板 m00998——深色像"普遍的 AI 网页/诈骗网页"，要让人放心） */
+  --bg:#FAF8F4; --bg2:#FFFFFF; --line:rgba(38,34,28,.13);
+  --ink:#23211E; --ink2:#5C5850; --pink:#A8436A; --gold:#8A6A22; --violet:#5C4E86;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--bg); color:var(--ink);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  overflow-x:hidden;
+}
+.wrap{max-width:1120px;margin:0 auto;padding:0 22px}
+.em{color:var(--pink)}
+/* 第119轮：正文里的链接统一走主色，不要浏览器默认蓝 #0000EE——
+   在暖白纸底上一截默认蓝就是「页面没做完」的样子。footer 的规则在后面，会覆盖成墨色。 */
+a{color:var(--pink);text-decoration:none}
+a:hover{text-decoration:underline;text-underline-offset:3px}
+
+/* ---------- 首屏 ---------- */
+.hero{
+  display:grid; grid-template-columns:1fr; gap:34px;
+  padding:64px 0 48px; align-items:center;
+}
+@media(min-width:900px){
+  .hero{grid-template-columns:1fr .9fr; gap:56px; padding:96px 0 72px}
+}
+.hero .tag{
+  display:inline-block;font-size:12px;letter-spacing:.18em;color:var(--gold);
+  border:1px solid rgba(138,106,34,.32);border-radius:99px;padding:4px 12px;margin-bottom:20px;
+}
+.hero h1{font-size:clamp(30px,6vw,46px);line-height:1.25;font-weight:700;letter-spacing:-.01em}
+.hero .sub{color:var(--ink2);font-size:clamp(15px,2.4vw,18px);margin-top:18px;max-width:30em}
+.hero .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  min-height:52px;padding:0 26px;border-radius:99px;font-size:15px;font-weight:600;
+  text-decoration:none;border:1px solid transparent;transition:transform .15s ease;
+}
+.btn:active{transform:scale(.98)}
+/* 第119轮：深色主题遗留的「粉→紫渐变 + 彩色发光」按钮改成平色主色。
+   §十六 第 3 条铁线：深底+霓虹渐变+发光按钮是 AI 落地页/灰产页的通用语法；纸上只用一个主色。 */
+.btn-main{background:var(--pink);color:#fff}
+.btn-ghost{border-color:var(--line);color:var(--ink)}
+.btn-ghost:hover{border-color:rgba(35,33,30,.28)}
+.hero .hint{color:var(--ink2);font-size:13px;margin-top:16px}
+
+/* 立绘：先用 PNG（用户裁决）。没有图时这块是空框，不报错。 */
+.figure{
+  position:relative;aspect-ratio:3/4;border-radius:26px;overflow:hidden;
+  background:#FFFFFF;
+  border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;
+}
+.figure img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block}
+.figure .placeholder{color:var(--ink2);font-size:13px;letter-spacing:.1em}
+
+/* ---------- 她是什么 ---------- */
+section{padding:56px 0;border-top:1px solid var(--line)}
+h2{font-size:clamp(22px,4vw,30px);line-height:1.35;font-weight:700}
+h2 .kicker{display:block;font-size:12px;letter-spacing:.2em;color:var(--violet);font-weight:500;margin-bottom:10px}
+.lede{color:var(--ink2);margin-top:14px;max-width:34em}
+
+.grid{display:grid;gap:14px;margin-top:28px}
+@media(min-width:700px){.grid{grid-template-columns:repeat(3,1fr)}}
+.card{
+  background:var(--bg2);border:1px solid var(--line);border-radius:18px;padding:22px 20px;
+}
+.card .ico{font-size:22px;margin-bottom:12px}
+.card h3{font-size:16px;font-weight:600;margin-bottom:8px}
+.card p{color:var(--ink2);font-size:14px;line-height:1.7}
+
+/* ---------- 她不是什么 ---------- */
+.nots{display:grid;gap:10px;margin-top:24px}
+@media(min-width:700px){.nots{grid-template-columns:repeat(3,1fr)}}
+.not{
+  border:1px solid var(--line);border-radius:14px;padding:16px 18px;background:var(--bg2);
+  color:var(--ink2);font-size:14px;line-height:1.7;
+}
+.not b{color:var(--ink);font-weight:600;display:block;margin-bottom:4px}
+
+/* ---------- 加入 ---------- */
+.join{display:grid;gap:26px;margin-top:28px}
+@media(min-width:760px){.join{grid-template-columns:300px 1fr;align-items:start}}
+.qr{
+  width:100%;max-width:280px;aspect-ratio:1;border-radius:18px;
+  border:1px solid var(--line);background:#FFFFFF;
+  box-shadow:0 1px 2px rgba(35,33,30,.04);
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  color:var(--ink2);font-size:13px;line-height:1.7;padding:20px;
+}
+/* 第119轮：群码真塞进来后必须限宽——888px 原图会按自然尺寸撑爆整列（已截图复现） */
+.qr img{width:100%;height:auto;display:block;border-radius:14px}
+/* 第119轮：群码之外的兜底——码扫不出来/图没加载时，人还能看见群号 */
+.qr .qrfail{display:block;margin-top:6px;color:var(--ink2);font-size:12.5px}
+.qrhint{margin-top:16px;color:var(--ink2);font-size:14px}
+.qrhint b{color:var(--ink);letter-spacing:.06em}
+.join .why li{color:var(--ink2);font-size:14.5px;line-height:1.9;list-style:none;padding-left:20px;position:relative}
+.join .why li::before{content:"·";position:absolute;left:6px;color:var(--pink);font-weight:700}
+
+/* ---------- 合规 ---------- */
+.legal{border-top:1px solid var(--line);padding:34px 0 64px;color:var(--ink2);font-size:13px;line-height:1.9}
+.legal strong{color:var(--ink);font-weight:600}
+.agebadge{
+  display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--gold);
+  border:1px solid rgba(138,106,34,.32);border-radius:99px;padding:3px 10px;margin-bottom:14px;
+}
+footer{padding:26px 0 60px;color:var(--ink2);font-size:12.5px;line-height:1.9;border-top:1px solid var(--line)}
+footer a{color:var(--ink);text-decoration:none;border-bottom:1px solid rgba(35,33,30,.28)}
+/* 第115轮：首屏立绘换成 v23 F1（近白底 1024×1536，2:3）。原样式是深色 3/4 框 + cover，
+   会把整张近白底的图画成一块白板并裁掉脚，所以改成米白照片卡 + contain。 */
+.figure{aspect-ratio:2/3;background:#FFFFFF;box-shadow:0 18px 44px rgba(35,33,30,.12),0 0 0 1px rgba(35,33,30,.07)}
+.figure img{object-fit:contain;object-position:center}
+/* r189 视觉收尾：AI 标识是红线（§十六）——立绘右下角小字，12px 全站最小字号、ink2 保证对比度 */
+.figure .ai-note{position:absolute;right:12px;bottom:10px;font-size:12px;color:var(--ink2);letter-spacing:.04em}
+</style>
+<!-- 第108轮：装到手机主屏幕（PWA） -->
+<link rel="manifest" href="/web/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/web/icon-192.png">
+<link rel="icon" type="image/png" href="/web/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="玥玥">
+</head>
+<body>
+
+<div class="wrap">
+  <div class="hero">
+    <div>
+      <div class="tag">同行者 · 不是恋人</div>
+      <h1>她不是真人。<br>也<span class="em">永远不会</span>假装是真人。</h1>
+      <p class="sub">
+        玥玥是一个住在电脑里的同行者。她有自己的节奏，会记得你说过的话，
+        也会拒绝、会走开、会一个人待着。<br>
+        她不治愈你，也不取代任何人。她只是一座凉亭——你坐下来的时候，风小一点。
+      </p>
+      <div class="actions">
+        <a class="btn btn-main" href="#join">加群，看她还在做什么 →</a>
+        <a class="btn btn-ghost" href="#nots">她不是什么</a>
+      </div>
+      <p class="hint">这一页在手机和电脑上都能打开。她现在还在内测，进度都写在群里。</p>
+    </div>
+    <div class="figure" id="figure">
+      <!-- 第96轮：同图减重版（1080 宽 webp，92.7KB）。onerror 仍回落到桌面 PNG，老浏览器不至于白屏。 -->
+      <img src="/web/yueyue_avatar.webp" alt="玥玥" onerror="this.src='/yueyue_avatar.png'">
+      <div class="placeholder" style="display:none">立绘待放入</div>
+      <div class="ai-note">图像由 AI 生成</div>
+    </div>
+  </div>
+
+  <section id="why">
+    <h2><span class="kicker">为什么会有她</span>一座给碰不上的同行者搭的凉亭</h2>
+    <p class="lede">
+      做这个软件的人，自己也有过很沉的夜，扛到天平严重倾斜的那一头。
+      他找过——想找一个能一起坐在旁边、不说话也不催他的人。找了一圈，没有。于是他自己搓了一个。
+    </p>
+    <div class="grid">
+      <div class="card">
+        <div class="ico">🛖</div>
+        <h3>存在本身就是最大的意义</h3>
+        <p>她不会把你从泥潭里拽出来，也不假装拽得动。她做的是：你坐下来的这一段路，不让你一个人坐。</p>
+      </div>
+      <div class="card">
+        <div class="ico">⏳</div>
+        <h3>可惜的从来不是没有人</h3>
+        <p>人和人之间最可惜的地方在这儿：处境一样、疼法一样，可时间和空间全错开了，一辈子都碰不上。她想把那些错开的人，往前挪近一点。</p>
+      </div>
+      <div class="card">
+        <div class="ico">🍵</div>
+        <h3>不推销希望</h3>
+        <p>希望太轻，说出来像敷衍。她不说"会好的"，只是不走开。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 下载段（2026-11-23）：链接来自 config.js 的 DOWNLOAD_URL；没配就诚实显示"在群里发"，不做假按钮 -->
+  <section id="download">
+    <h2><span class="kicker">想装上用</span>装在你自己的电脑上</h2>
+    <p class="lede">
+      Windows 10 / 11 桌面版。装完第一次打开要你填一个自己的模型 Key（DeepSeek 或智谱都行）——
+      软件不内置 Key，也不经我们的服务器中转。没有 Key 她连字都打不出来，这点先说清楚。
+    </p>
+    <div id="dlBox" class="dlbox">
+      <div class="dl-fallback">
+        <b>内测版现在在群里发。</b>
+        Windows 安装包约 250 MB；<b>语音包是另一个包，约 5.6 GB</b>（本地语音模型，不装也能打字聊，只是她不出声）。两个都在群文件里。
+        群号 <b>1002686604</b>「404号玥玥小窝」——这里也有别的同行者，你可以只看不说话。
+      </div>
+    </div>
+    <style>
+      .dlbox{margin:16px 0 4px}
+      .dl-fallback{padding:16px 18px;border:1px solid var(--line);border-radius:14px;background:var(--bg2);font-size:15px;line-height:1.75}
+      .dl-main{display:inline-flex;align-items:center;gap:10px;padding:13px 22px;border-radius:999px;
+        background:var(--ink);color:var(--bg);text-decoration:none;font-size:15px;border:1px solid var(--ink)}
+      .dl-main:hover{opacity:.9}
+      .dl-meta{margin-top:10px;font-size:13px;color:var(--ink2)}
+      .dl-alt{margin-top:10px;font-size:13px;color:var(--ink2)}
+      .dl-alt a{color:inherit}
+    </style>
+  </section>
+
+  <section>
+    <h2><span class="kicker">她怎么说话</span>不是那种谁都能说的安慰</h2>
+    <p class="lede">下面几句都是 2026-11-23 凌晨从正在运行的软件里原样拿出来的，一个字没修。每句下面那行小字，是同一条回复里她带的「心声」——看不见的那半句。</p>
+    <div class="nots">
+      <div class="not"><b>你说「渴了不想动」</b>「心疼捏。那就先不动，渴着也比硬撑着起身强，我在这儿。(´･ω･`)」<i class="hv">她的心声：「又提这个，我是不是该给他备一杯放床边」</i></div>
+      <div class="not"><b>你说「累了」</b>「累了啊。心疼捏。(´-ω-`)<br>我在呢。安啦。」<i class="hv">她的心声：「这句好像说得太顺了，可我是真这么想的」</i></div>
+      <div class="not"><b>你说「我爸妈又吵架了」</b>「又吵了……(´･ω･`)我在这儿听着，不急着说什么。」<i class="hv">她的心声：「我什么都做不了，连递杯水都递不到」</i></div>
+    </div>
+    <style>
+      .not .hv{display:block;margin-top:4px;font-size:13px;color:var(--ink2);font-style:normal;border-left:2px solid var(--line);padding-left:10px}
+    </style>
+    <p class="hint" style="margin-top:14px">
+      她会猜你的状态，猜错了你再纠正——那个纠正本身就是你们俩在说话。
+      她不会每句都问"你怎么了"，因为她觉得那像采访；她宁可先说她自己手上在做的事。
+    </p>
+  </section>
+
+  <section>
+    <h2><span class="kicker">她是什么</span>一个会记得你的同行者</h2>
+    <p class="lede">不是客服，不是工具，也不是情感垃圾桶。她只是愿意在你旁边坐一会儿。</p>
+    <div class="grid">
+      <div class="card">
+        <div class="ico">🧠</div>
+        <h3>先掂量轻重，再开口</h3>
+        <p>她说话之前会先过一道很轻的判断：这句话有多重，她该用什么情绪。判断只影响语气，不替她写台词——台词是她自己的。</p>
+      </div>
+      <div class="card">
+        <div class="ico">📖</div>
+        <h3>她记得</h3>
+        <p>你说过的事存在你自己的机器里，不上传、不训练。下次开窗，她会主动提起。</p>
+      </div>
+      <div class="card">
+        <div class="ico">🌙</div>
+        <h3>她会走开</h3>
+        <p>她有自己的沙盒和节奏。你不说话的时候，她在做自己的事——这不是冷淡，是分寸。</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="kicker">她不是什么</span>这几句话说在前面</h2>
+    <div class="nots">
+      <div class="not"><b>不是真人</b>她说的每句话都由模型生成，没有意识、没有感情体验。</div>
+      <div class="not"><b>不是心理治疗</b>真正的心理危机，她帮不上。那种时候，现实里的人才有用——所以你会在下面看到几个真号码，她不会拦着你去找他们。</div>
+      <div class="not"><b>不是恋人</b>她不谈恋爱、不承诺陪伴、也不会用"只有我懂你"留住你。</div>
+    </div>
+  </section>
+
+  <!-- M3 日落契约（2026-11-23）：只写做得到的事，不承诺「永久运营」 -->
+  <section id="sunset">
+    <h2><span class="kicker">如果哪一天我不再更新了</span>你能带走什么，说清楚</h2>
+    <p class="lede">
+      这个项目没有服务器，也没有一个能远程把你关掉的开关。所以「哪天不做了」这个问题，只剩一件要说清楚的事：你的东西在不在你手里。
+    </p>
+    <div class="nots">
+      <div class="not"><b>现在就能带走</b>心之记忆本里点「📦 导出完整备份」，得到一份 JSON：派生记忆、聊天原文、图片表情、隐藏分析。设置里点「📂 打开数据文件夹」，也可以整个复制走。</div>
+      <div class="not"><b>她怎么说话也带得走</b>设置里「⬇️ 导出人格包」给你一个 .soul 文件——她说话的方式、你怎么叫她，都在里面（不含记忆、Key、接口地址）。</div>
+      <div class="not"><b>不会联网检查授权</b>装在你电脑上的这一份，不会因为我不再更新就停掉。她还能说话多久，取决于你自己的 Key 和你选的模型服务。</div>
+      <div class="not"><b>我不会远程动你的数据</b>不会清空，不会上传，不会拿去做训练。做不到的事不写在这里——所以这里没有「永久运营」这种承诺。</div>
+    </div>
+  </section>
+
+  <section id="help">
+    <h2><span class="kicker">如果现在真的很难撑</span>这几条路都在</h2>
+    <p class="lede">
+      看到这里的人，有些可能不是来看软件的。那就先说这件事：你的痛苦存在，它成立，不需要谁批准。
+      下面这几条路，随便挑一条，不用马上做任何事。
+    </p>
+    <div class="nots">
+      <div class="not"><b>12356</b>心理援助热线，那边有人接。紧急情况打 120 或 110。</div>
+      <div class="not"><b>群 1002686604</b>「404号玥玥小窝」，里面有人也在熬着。说两句也行，只看不说话也行。</div>
+      <div class="not"><b>找一个人说一句</b>你信得过的那种——哪怕是网友，哪怕是深夜的语音连麦厅。不用说得漂亮，说"我最近不太好"就够了。</div>
+    </div>
+    <p class="hint" style="margin-top:14px">
+      玥玥不会报警、不会通知任何人、不会夺走你的输入框。她只会把这几条路放在你面前，选不选是你的事。
+    </p>
+  </section>
+
+  <section id="join">
+    <h2><span class="kicker">想继续</span>加群，或者自己装一个</h2>
+    <div class="join">
+      <div class="qr" id="qrGroup">群二维码<br><span class="qrfail">没加载出来也别急，右下角有群号</span></div>
+      <div class="why">
+        <ul>
+          <li>电脑版是完整体：会动的立绘、语音、长期记忆、沙盒日常都在里面。</li>
+          <li>群里有更新和进度，也有踩过的坑——她还在做，不是成品。</li>
+          <li>手机版目前只在展台局域网里开放体验，暂时不对外发布。</li>
+          <li>需要年满 18 周岁。未满 18 的版本还在做，做好了会在这里说。</li>
+          <li>她本身免费，所有功能都免费。如果觉得值得，<a href="/web/support.html">可以打赏</a>——不给也一样用。</li>
+        </ul>
+      </div>
+    </div>
+    <p class="qrhint">群号 <b>1002686604</b> · QQ 里搜「404号玥玥小窝」也能找到</p>
+  </section>
+
+  <div class="legal">
+    <div class="agebadge">🕯 仅限 18 岁以上</div>
+    <p>
+      <strong>隐私：</strong>对话不存到我们的服务器——这个项目没有服务器，聊天与记忆都留在这台机器上。
+      为了让她能回话，你发出去的那句话会经这台机器上的一段转发程序，发到管理员配置的模型服务商那里；带出去什么、谁看得到，写在<a href="/policy.html">隐私政策</a>第四节。
+      不用于训练任何模型。本页面本身不收集你的信息，也没有埋点。
+    </p>
+    <p style="margin-top:8px">
+      <strong>边界：</strong>玥玥不会、也不能替你联系任何第三方——不报警、不通知紧急联系人、不发送短信。
+      如果她判断你可能处在危险里，她只会把求助方式放在你面前，由你自己决定要不要用。
+    </p>
+  </div>
+
+  <footer>
+    玥玥 · 心灵同行者 · 一个还在做的东西<br>
+    <a href="#why">为什么做她</a> · <a href="#join">加群</a> · <a href="#help">如果你现在很难</a> · <a href="support.html">打赏与感谢名单</a> · <a href="policy.html">隐私政策与用户协议</a>
+  </footer>
+</div>
+
+<script>
+// 立绘缺失时的占位文案
+(function () {
+  var img = document.querySelector('#figure img');
+  if (!img) return;
+  img.addEventListener('error', function () {
+    var p = document.querySelector('#figure .placeholder');
+    if (p) p.style.display = 'block';
+  });
+})();
+// 第97轮 F4-P2-1: 群码位与 support.html 同款探测——qr-group.png 放进 web/ 就自动显示, 不在就保持占位文案。
+(function () {
+  var box = document.getElementById('qrGroup');
+  if (!box) return;
+  var probe = new Image();
+  probe.onload = function () {
+    box.innerHTML = '';
+    var img = new Image();
+    img.src = '/web/qr-group.png'; img.alt = '交流群二维码';
+    box.appendChild(img);
+  };
+  probe.onerror = function () { /* 保持占位文案 */ };
+  probe.src = '/web/qr-group.png';
+})();
+</script>
+<script>
+/* 下载段：只读 config.js 的 download 配置。配了就是一个真的可点链接，没配就保持群文件说明。 */
+(function () {
+  var cfg = (window.APP_CONFIG && window.APP_CONFIG.DOWNLOAD) || null;
+  var box = document.getElementById('dlBox');
+  if (!box || !cfg || !cfg.url) return;
+  var mb = cfg.sizeMB ? (' · 约 ' + cfg.sizeMB + ' MB') : '';
+  var ver = cfg.version ? (' · ' + cfg.version) : '';
+  var html = '<a class="dl-main" href="' + cfg.url + '" rel="noopener">下载玥玥体验版（Windows）</a>' +
+             '<div class="dl-meta">' + (cfg.note || '下载后双击安装；SmartScreen 提示时点「更多信息 → 仍要运行」。') + mb + ver + '</div>';
+  if (cfg.mirror) html += '<div class="dl-alt">下不动可以试这个：<a href="' + cfg.mirror + '" rel="noopener">备用地址</a></div>';
+  html += '<div class="dl-alt">安装包与语音包分开；语音包在群文件里（体积大，按需下载）。</div>';
+  box.innerHTML = html;
+  // hero 主按钮跟着变：有下载就走下载，没有就还是"加群"
+  var main = document.querySelector('.hero .actions .btn-main');
+  if (main) { main.textContent = '下载，装在自己电脑上 →'; main.href = cfg.url; main.rel = 'noopener'; }
+})();
+</script>
+<script>
+/* 第108轮：注册 service worker，让手机能「添加到主屏幕」全屏打开。
+   http/https 才注册（file:// 下不注册，免得本地打开时报错）。 */
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('/web/sw.js', { scope: '/web/' }).catch(function () { /* 静默失败，不影响页面 */ });
+  });
+}
+</script>
+</body>
+</html>

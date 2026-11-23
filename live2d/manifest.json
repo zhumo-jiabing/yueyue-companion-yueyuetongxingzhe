@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "format": "auto-live2d-finished-pack",
+  "exportedAt": "2026-09-05T22:25:31.400Z",
+  "projectName": "yueyue_body",
+  "sourceFileName": "yueyue_body.psd",
+  "entry": "project.json",
+  "adapter": "adapter.json",
+  "runtime": "runtime.html",
+  "note": "project.json embeds all layer images as data URLs, so the pack can be imported without re-running PSD adaptation."
+}

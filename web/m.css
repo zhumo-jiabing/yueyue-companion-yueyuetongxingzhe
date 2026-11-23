@@ -1,0 +1,484 @@
+/* ==========================================================================
+   玥玥 · 漫展网页版 手机样式（第88轮 D1）
+   --------------------------------------------------------------------------
+   这份 CSS 只在 /m 注入，桌面端 index.html 一行都没改。
+   设计依据：UI 设计师 375×667 分区（标题 48 / 消息流 554 / 输入 65）。
+   原则：手机档只做两件事 —— 把桌面那套挤成竖屏、把手指点得到。
+        绝不压字号/行高/气泡内边距（那是可读性红线，不是"空间不够"的理由）。
+   ========================================================================== */
+
+/* ---------- 0. 变量 ---------- */
+:root {
+    --m-titlebar-h: 0px;
+    --m-header-h: 48px;
+    --m-input-h: 65px;
+    --m-safe-b: env(safe-area-inset-bottom, 0px);
+    --m-figure-opacity: 0.26;
+    /* 第96轮：同一张脸，只减重。web/yueyue_avatar.webp = 现有 avatar 缩到 1080 宽、q78，
+       3.2MB → 92.7KB（-97.1%）；画面内容未改（老板 m00362：现有形象不做更改）。
+       桌面版仍用 resources/app/yueyue_avatar.png，不动。 */
+    --m-figure: url("/web/yueyue_avatar.webp");
+}
+
+/* ---------- 0.1 屏幕阅读器专用文字（第88轮无障碍收口） ----------
+   不靠 aria-label 假装"有说话人"：DOM 里要有真文本，读屏才读得到。
+   放在媒体查询之外，桌面宽度下调试 /m 时也生效。 */
+.sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    clip-path: inset(50%) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+/* ---------- 1. 只在手机档生效 ---------- */
+@media (max-width: 820px), (pointer: coarse) {
+
+    html, body {
+        height: 100%;
+        overflow: hidden;
+        overscroll-behavior: none;
+        -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+        /* 键盘弹起时布局根必须跟着 visualViewport 走，100vh 在 iOS 上是不变的 */
+        height: var(--m-vvh, 100dvh);
+    }
+
+    /* 桌面自绘标题栏：fixed + z-index 99998，会吞掉所有点击 —— 手机档必须钉死 */
+    #appTitlebar { display: none !important; }
+
+    /* ---------- 2. 主布局：只留聊天列 ---------- */
+    /* 桌面版的左频道面板与 8 个悬浮按钮都是 position:fixed + z-index 9998，
+       它们不在 .yueyue-area 里，必须单独钉死 —— 否则会压在聊天气泡上（第88轮实测）。 */
+    .float-btn,
+    .float-btn-left,
+    #sideChannel,
+    #appTitlebar { display: none !important; }
+
+    .container {
+        position: fixed !important;
+        inset: 0 !important;
+        display: block !important;
+        height: auto !important;
+        max-height: none !important;
+        width: auto !important;
+        max-width: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        gap: 0 !important;
+        border-radius: 0 !important;
+    }
+
+    /* 舞台区（Live2D 视频 + 状态卡 + 左右悬浮条）在手机上整块让位，
+       立绘改由 .chat-area::before 承担 */
+    .container > .yueyue-area { display: none !important; }
+
+    /* ---------- 3. 立绘（用户要求：先用 PNG） ---------- */
+    /* 关键：水印必须画在 .chat-area 的背景之上、文字之下。
+       写在 body::before 会被 .chat-area 的 0.80 不透明底色压掉，
+       实测有效不透明度只剩 0.30 × 0.20 = 0.06 —— 看上去就是一团雾。 */
+    .chat-area::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        background-image: var(--m-figure, none);
+        background-repeat: no-repeat;
+        background-position: 50% 7%;
+        background-size: min(122vw, 740px) auto;
+        /* 只留脸周围的一圈光：砖墙和边缘全部淡掉，往下淡出别糊到气泡。
+           第88轮 MuMu 横屏缺陷④：只有径向遮罩时，图片左右两条竖直硬边会露出来。
+           横向渐隐的淡出位置必须跟着 background-size 走：立绘宽 min(122vw,740px)、
+           居中，所以图缘在 calc(50% ± min(61vw,370px))，从图缘往内 36px 淡入。
+           若按元素宽度的 14% 去淡，1920 屏上 14% 只有 152px，图缘处 alpha 已经=1，
+           硬边依旧在 —— 上面的实测数字（边缘跳变 31.8）就是这么来的。 */
+        -webkit-mask-image:
+            radial-gradient(70% 44% at 50% 27%, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.68) 50%, rgba(0,0,0,0) 88%),
+            linear-gradient(to right,
+                rgba(0,0,0,0) 0,
+                rgba(0,0,0,0) calc(50% - min(61vw, 370px)),
+                #000 calc(50% - min(61vw, 370px) + 36px),
+                #000 calc(50% + min(61vw, 370px) - 36px),
+                rgba(0,0,0,0) calc(50% + min(61vw, 370px)),
+                rgba(0,0,0,0) 100%);
+        -webkit-mask-composite: source-in;
+        -webkit-mask-repeat: no-repeat;
+        mask-image:
+            radial-gradient(70% 44% at 50% 27%, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.68) 50%, rgba(0,0,0,0) 88%),
+            linear-gradient(to right,
+                rgba(0,0,0,0) 0,
+                rgba(0,0,0,0) calc(50% - min(61vw, 370px)),
+                #000 calc(50% - min(61vw, 370px) + 36px),
+                #000 calc(50% + min(61vw, 370px) - 36px),
+                rgba(0,0,0,0) calc(50% + min(61vw, 370px)),
+                rgba(0,0,0,0) 100%);
+        mask-composite: intersect;
+        mask-repeat: no-repeat;
+        filter: saturate(1.06) brightness(0.90);
+        opacity: var(--m-figure-opacity);
+    }
+
+    /* 聊天列自己就是一整屏：内容层要抬到立绘之上 */
+    .chat-area > * { position: relative; z-index: 1; }
+
+    /* ---------- 4. 聊天列 ---------- */
+    .chat-area {
+        position: absolute !important;
+        inset: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        width: auto !important;
+        max-width: none !important;
+        min-width: 0 !important;
+        height: auto !important;
+        max-height: none !important;
+        border-radius: 0 !important;
+        border-left: none !important;
+        border-right: none !important;
+        background: rgba(12, 10, 24, 0.80) !important; /* 日间反光衰减：不压到 0.80 以下会透出屏幕反光 */
+    }
+
+    /* 消息区吃掉所有剩余高度，输入区永远贴底 */
+    #chatMessages {
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 8px !important;
+    }
+
+    /* ---------- 5. 标题区 48px ---------- */
+    /* 展台只留一件事：说话。
+       功能地图/设置（桌面才有意义）、语音输入两个按键（http 局域网没有 getUserMedia）、
+       联网开关（代理不提供搜索，留一个按了没反应的开关比没有更糟）—— 一律不渲染。 */
+    #helpBtn,
+    #settingsGearBtn,
+    #micBtn,
+    #micWaitBtn,
+    #btnSearchQuick,
+    .chat-subhead { display: none !important; }
+
+    /* 第一行原本被「功能地图 / 设置」挤满，把副标题顶出了裁剪区（第88轮实测 350px > 349px） */
+    .chat-header > div:first-child {
+        min-width: 0 !important;
+        overflow: hidden !important;
+        flex-wrap: nowrap !important;
+    }
+
+    .chat-header {
+        height: var(--m-header-h) !important;
+        min-height: var(--m-header-h) !important;
+        padding: 0 12px !important;
+        margin: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        gap: 0 !important;
+        border-bottom: 1px solid rgba(169, 157, 214, 0.16) !important;
+        flex: none;
+        position: relative;
+        z-index: 3;
+    }
+    .chat-header > div:first-child { gap: 6px !important; }
+    .chat-header .chat-title { font-size: 16px !important; line-height: 1.2 !important; }
+    /* 注意：早先这里写的是 display:flex（保留副标题），它比上面的 .chat-subhead
+       特异性高，会把「不渲染副标题」这条静默吃掉（第88轮实测：截图里两个 chip 仍在）。
+       48px 只有一行的高度，副标题与标题叠在一起会顶出裁剪区，这里必须真关掉。 */
+    .chat-header .chat-subhead { display: none !important; }
+    /* 功能地图/设置按钮已整条不渲染，这条只留作兜底（万一将来恢复） */
+    #helpBtn, #settingsGearBtn {
+        padding: 3px 8px !important;
+        font-size: 11px !important;
+        min-width: 32px;
+        min-height: 32px;
+    }
+    /* 功能地图/设置两个按钮在展台不需要，收成 32px 的图标级 */
+    #helpBtn, #settingsGearBtn {
+        padding: 3px 8px !important;
+        font-size: 11px !important;
+        min-width: 32px;
+        min-height: 32px;
+    }
+
+    /* ---------- 6. 消息流 ---------- */
+    .chat-messages {
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+        padding: 10px 12px 6px !important;
+        gap: 8px !important;
+        scroll-behavior: smooth;
+    }
+    .message {
+        max-width: 88% !important;
+        font-size: 15px !important;
+        line-height: 1.62 !important; /* 行高不动 */
+        padding: 9px 12px !important;
+    }
+    .time-sep { font-size: 11px !important; margin: 4px 0 !important; }
+
+    /* ---------- 7. 空态：只留三颗能点的气泡 ---------- */
+    #chatEmpty .ce-cards, #chatEmpty .ce-sub { display: none !important; }
+    #chatEmpty { padding: 8px 12px !important; }
+    #chatEmpty .ce-title { font-size: 15px !important; }
+    #chatEmpty .ce-topics { flex-wrap: wrap; gap: 8px; }
+    #chatEmpty .ce-topic {
+        font-size: 13px !important;
+        padding: 9px 12px !important;
+        min-height: 40px;
+    }
+    .ce-status { flex-wrap: wrap; gap: 6px; font-size: 12px; }
+
+    /* ---------- 8. 快捷玩法行 ---------- */
+    #quickRow { display: none !important; }   /* 展台不需要，省 52px 给消息流 */
+    .her-status-strip { font-size: 11px !important; padding: 4px 12px !important; }
+    #suggestBar { padding: 0 12px 6px !important; }
+
+    /* ---------- 9. 输入区 65px ---------- */
+    .chat-input-area {
+        flex: none !important;
+        padding: 6px 10px calc(6px + var(--m-safe-b)) !important;
+        gap: 6px !important;
+        background: rgba(12, 10, 24, 0.92);
+        border-top: 1px solid rgba(169, 157, 214, 0.14);
+        position: relative;
+        z-index: 3;
+    }
+
+    .chat-tool-row {
+        height: 30px !important;
+        gap: 6px !important;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+    .chat-tool-row::-webkit-scrollbar { display: none; }
+    /* 34×34 低于 44 的指头尺寸 —— 手机档回 44 */
+    .chat-tool-row .voice-toggle,
+    .chat-input-area .voice-toggle {
+        min-width: 44px !important;
+        min-height: 30px !important;
+        font-size: 14px !important;
+        flex: none;
+    }
+    /* 工具行在手机上只留 4 个（＋ 语音 🔍 图），其余藏掉 */
+    #btnQuickToggle, #voiceToggle, #btnSearch, #btnImage { }
+
+    textarea#userInput,
+    #userInput,
+    .chat-input-area textarea,
+    .chat-input-area input[type="text"] {
+        font-size: 16px !important;  /* <16px 会触发 iOS 自动放大 */
+        line-height: 1.5 !important;
+        min-height: 40px !important;
+        padding: 8px 12px !important;
+        border-radius: 20px !important;
+    }
+
+    #sendBtn, .send-btn {
+        min-width: 56px !important;
+        min-height: 40px !important;
+        font-size: 14px !important;
+        border-radius: 20px !important;
+        /* 无障碍：真源 alpha 0.95 让日间对比度掉到 4.36:1；手机档去透明度 */
+        opacity: 1 !important;
+        background: #7e5cb8 !important;
+        color: #fff !important;
+    }
+
+    /* 无障碍：所有表单控件 16px（iOS 聚焦不放大；读屏字号口径统一）。
+       真源里设置面板的 input 只有 13-14px，只改 textarea 不够。 */
+    input, textarea, select {
+        font-size: 16px !important;
+    }
+
+    /* 无障碍：图标级关闭按钮的指头尺寸。真源多为 32×32 / 无尺寸，
+       负 margin 抵掉多出来的 12px，不把标题栏撑高。 */
+    .icon-btn,
+    [id*="close" i],
+    [id*="Close"] {
+        min-width: 44px !important;
+        min-height: 44px !important;
+    }
+    .icon-btn { margin: -6px !important; }
+
+    /* 输入工具行的六个按钮：真源 32×32，手机上指头点不准。
+       只给高度和最小宽度，不缩放 emoji 本身。 */
+    #btnQuickToggle, #voiceToggle, #micBtn, #micWaitBtn, #btnStopVoice,
+    #btnSearchQuick {
+        min-width: 44px !important;
+        min-height: 44px !important;
+    }
+
+    /* 快捷玩法行（默认收起，无障碍验收会强制展开逐项量）：44×44 + 6/8 内边距 */
+    #quickRow .quick-btn,
+    .quick-btn {
+        min-width: 44px !important;
+        min-height: 44px !important;
+        padding: 6px 8px !important;
+    }
+
+    /* 年龄门焦点：程序化聚焦到标题/成年确认框时，不画粉色描边。
+       这是"像 bug"的那圈光；标题与确认框都是 tabindex=-1，键盘 Tab 到不了，
+       去掉它不影响键盘用户的焦点可见性（真正的按钮仍走真源 :focus-visible）。 */
+    #age-gate-title:focus,
+    #age-gate-title:focus-visible,
+    #age-gate-adult-confirm:focus,
+    #age-gate-adult-confirm:focus-visible {
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    /* 心声卡：可见标识从 ::before 挪进真文本（读屏要读到"心声"），
+       ::before 必须置 none，否则会重复一遍。 */
+    .heart-voice::before { content: none !important; }
+    .heart-voice .hv-label {
+        display: block;
+        font-size: 0.62em;
+        letter-spacing: 1.5px;
+        opacity: 0.7;
+        color: #c9b8ff;
+        margin-bottom: 2px;
+    }
+
+    /* 0 嗓音提示条（第88轮 MuMu 缺陷①）：显式告诉观众"没有语音引擎"，
+       不再"看着在说、其实没声"。pointer-events:none 保证不挡下面的按钮。 */
+    #webVoiceNotice {
+        position: fixed;
+        left: 12px;
+        right: 12px;
+        top: calc(var(--m-header-h) + 8px);
+        z-index: 12000;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border-radius: 14px;
+        background: rgba(42, 33, 64, 0.98);
+        border: 1px solid rgba(255, 180, 200, 0.45);
+        color: #ffe9f0;
+        font-size: 13px;
+        line-height: 1.5;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+        pointer-events: none;
+    }
+    #webVoiceNotice .wvn-text { flex: 1 1 auto; }
+    #webVoiceNotice .wvn-close {
+        pointer-events: auto;
+        flex: none;
+        min-width: 44px;
+        min-height: 36px;
+        padding: 0 12px;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 180, 200, 0.5);
+        background: rgba(255, 255, 255, 0.08);
+        color: #ffe9f0;
+        font-size: 13px;
+    }
+
+    /* 系统事件落点：消息流之外、输入区之上，视觉保留、读屏由 #srStatus 负责 */
+    #mSysHost {
+        flex: none;
+        padding: 0 12px;
+        position: relative;
+        z-index: 2;
+    }
+    #mSysHost .transient-notice { margin: 4px 0; }
+
+    /* ---------- 10. 弹层：手机档一律全屏 ---------- */
+    #memory-panel,
+    #policy-overlay > div,
+    #consent-overlay > div,
+    #state-overlay > div,
+    #tag-overlay > div,
+    #help-overlay > div,
+    #letter-overlay > div,
+    #song-overlay > div,
+    #wakeup-overlay > div,
+    #search-overlay > div,
+    #sticker-overlay > div {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 100% !important;
+        max-height: 100% !important;
+        border-radius: 0 !important;
+        overflow-y: auto;
+    }
+
+    /* 年龄门：三档等高等宽，指头点得着 */
+    #age-gate-overlay > div {
+        width: 92% !important;
+        max-width: 460px !important;
+        padding: 28px 22px !important;
+        border-radius: 24px !important;
+    }
+    #age-gate-overlay .age-gate-btn,
+    #age-gate-adult-ok, #age-gate-adult-back,
+    #age-gate-guardian-ok, #age-gate-exit,
+    #age-gate-minor-back, #age-gate-minor-exit {
+        min-height: 48px !important;
+        font-size: 15px !important;
+    }
+    #age-gate-overlay h1 { font-size: 20px !important; }
+
+    /* 引导页 */
+    #intro-overlay { padding: 0 !important; }
+    #intro-overlay .intro-card {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 100% !important;
+        border-radius: 0 !important;
+        overflow-y: auto;
+        padding: 26px 20px !important;
+    }
+
+    /* 撤销条（B6）：底部悬浮，够得着 */
+    .app-toast {
+        left: 12px !important;
+        right: 12px !important;
+        bottom: calc(76px + var(--m-safe-b)) !important;
+        transform: none !important;
+        font-size: 13px !important;
+    }
+    .app-toast.undo button { min-height: 36px; padding: 0 14px; }
+
+    /* ---------- 11. 她出声时水印稍微亮一点 ---------- */
+    body.m-speaking { --m-figure-opacity: 0.34; }
+    body.m-empty { --m-figure-opacity: 0.55; }
+}
+
+/* ---------- 12. 极窄机（≤360px）再让一步：只降装饰，不降字号 ---------- */
+@media (max-width: 360px) {
+    .message { max-width: 92% !important; }
+    #sendBtn { min-width: 48px !important; }
+}
+
+/* ---------- 13. 横屏（展台偶尔有人横过来看） ---------- */
+@media (max-width: 820px) and (orientation: landscape) {
+    :root { --m-header-h: 40px; }
+    .chat-messages { padding-top: 6px !important; }
+}
+
+/* ---------- 14. 尊重系统的减少动效（照抄真源 3474-3486 的 .001ms 做法） ----------
+   注意：这里不能写 animation:none —— 真源有靠 animationend 推进的动画，
+   直接 none 会把回调永远卡住。统一压到 .001ms，让事件照常触发、视觉上瞬完。 */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+    }
+    body::before { transition: none !important; animation: none !important; }
+    .chat-messages { scroll-behavior: auto !important; }
+}

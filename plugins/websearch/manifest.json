@@ -1,0 +1,12 @@
+{
+  "id": "websearch",
+  "name": "联网搜索",
+  "version": "1.0.0",
+  "description": "按当前模型对应的服务商路由搜索通道（智谱 web_search / 阿里 enable_search / DeepSeek deepseek_web_search，走 Responses API），未知服务商诚实降级为常识回答。",
+  "main": "index.js",
+  "defaultEnabled": true,
+  "builtin": true,
+  "permissions": ["net:fetch", "key:provider"],
+  "capabilities": ["network"],
+  "channels": ["ai:web-search"]
+}

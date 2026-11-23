@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>玥玥 · 记忆读取器</title>
+<style>
+    :root {
+        --paper: #FAF8F4;
+        --paper-2: #FFFDF9;
+        --ink: #23211E;
+        --ink-soft: #6B645B;
+        --ink-faint: #938A7E;
+        --line: #E6DED2;
+        --accent: #B5735A;
+        --accent-soft: #F1E3DA;
+        --green: #5E7D6B;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+        background: var(--paper);
+        color: var(--ink);
+        font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", system-ui, sans-serif;
+        line-height: 1.7;
+        -webkit-font-smoothing: antialiased;
+    }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 40px 22px 64px; }
+    header { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: 18px; }
+    h1 { font-size: 24px; letter-spacing: 0.02em; margin: 0 0 4px; font-weight: 700; }
+    .sub { color: var(--ink-soft); font-size: 13px; margin: 0; }
+    .badge { display: inline-block; font-size: 11px; color: var(--green); border: 1px solid #CBD9CF; background: #F3F8F4; border-radius: 999px; padding: 3px 10px; }
+    .intro { margin: 22px 0 18px; color: var(--ink-soft); font-size: 13px; }
+    .drop {
+        border: 1px dashed #CDBFB0; background: var(--paper-2); border-radius: 14px;
+        padding: 26px 20px; text-align: center; cursor: pointer; transition: border-color .15s, background .15s;
+    }
+    .drop:hover, .drop.over { border-color: var(--accent); background: #FFF8F2; }
+    .drop strong { display: block; font-size: 15px; margin-bottom: 4px; }
+    .drop span { color: var(--ink-faint); font-size: 12px; }
+    #file { display: none; }
+    .summary { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 20px 0 8px; }
+    .stat { background: var(--paper-2); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+    .stat b { display: block; font-size: 20px; font-weight: 700; line-height: 1.3; }
+    .stat span { color: var(--ink-faint); font-size: 11px; }
+    .meta { color: var(--ink-faint); font-size: 12px; margin: 6px 0 18px; }
+    .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 18px 0 12px; }
+    .tab {
+        border: 1px solid var(--line); background: var(--paper-2); color: var(--ink-soft);
+        border-radius: 999px; padding: 6px 14px; font-size: 12px; cursor: pointer;
+    }
+    .tab.active { background: var(--ink); color: #FFFDF9; border-color: var(--ink); }
+    .toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }
+    #search {
+        flex: 1; min-width: 0; border: 1px solid var(--line); background: var(--paper-2);
+        border-radius: 10px; padding: 9px 12px; font-size: 13px; color: var(--ink); outline: none;
+    }
+    #search:focus { border-color: var(--accent); }
+    #count { color: var(--ink-faint); font-size: 12px; white-space: nowrap; }
+    .list { display: flex; flex-direction: column; gap: 10px; }
+    .item { background: var(--paper-2); border: 1px solid var(--line); border-radius: 12px; padding: 13px 15px; }
+    .item-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 5px; }
+    .pill { font-size: 10px; color: var(--ink-soft); background: #F3EEE7; border-radius: 999px; padding: 2px 8px; }
+    .time { font-size: 11px; color: var(--ink-faint); margin-left: auto; }
+    .content { font-size: 13px; white-space: pre-wrap; word-break: break-word; }
+    .img-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+    .img-card { background: var(--paper-2); border: 1px solid var(--line); border-radius: 12px; padding: 8px; }
+    .img-card img { width: 100%; height: 120px; object-fit: contain; border-radius: 8px; background: #F5F0E9; display: block; }
+    .img-card p { margin: 6px 2px 0; font-size: 11px; color: var(--ink-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .empty { color: var(--ink-faint); font-size: 13px; padding: 28px 0; text-align: center; border: 1px dashed var(--line); border-radius: 12px; }
+    .error { color: #9B3D53; background: #FCF1F3; border: 1px solid #EFD3D9; border-radius: 10px; padding: 10px 12px; font-size: 13px; margin-top: 12px; display: none; }
+    footer { margin-top: 36px; color: var(--ink-faint); font-size: 11px; border-top: 1px solid var(--line); padding-top: 14px; }
+    @media (max-width: 720px) {
+        .wrap { padding: 24px 14px 44px; }
+        .summary { grid-template-columns: repeat(2, 1fr); }
+        .stat:last-child { grid-column: span 2; }
+    }
+</style>
+</head>
+<body>
+<div class="wrap">
+    <header>
+        <div>
+            <h1>玥玥 · 记忆读取器</h1>
+            <p class="sub">打开一份「完整备份」或旧的「记忆 JSON」，在这里看全四张表。只读，不会连接网络。</p>
+        </div>
+        <span class="badge">本地只读 · 不上传</span>
+    </header>
+
+    <p class="intro">选择文件后，这里会显示：派生记忆、聊天原文、图片表情、隐藏分析。旧版 v2 备份只有派生记忆，也能打开。</p>
+
+    <div id="drop" class="drop" role="button" tabindex="0">
+        <strong>把备份文件拖到这里，或点击选择</strong>
+        <span>支持 yueyue-full-export v3 / yueyue-memories v2 / 裸数组</span>
+    </div>
+    <input type="file" id="file" accept=".json,application/json">
+    <div id="error" class="error"></div>
+
+    <div id="summary" class="summary" style="display:none;"></div>
+    <div id="meta" class="meta"></div>
+
+    <div id="tabs" class="tabs" style="display:none;"></div>
+    <div id="toolbar" class="toolbar" style="display:none;">
+        <input id="search" type="text" placeholder="在当前表里搜关键词…">
+        <span id="count"></span>
+    </div>
+    <div id="list" class="list"></div>
+
+    <footer>这个页面是独立文件，只读取你选择的 JSON；不会写入应用数据库，也不会上传。关闭页面即可。</footer>
+</div>
+
+<script>
+(function () {
+    'use strict';
+    var state = { tables: null, current: 'memories', data: null, keyword: '' };
+    var TABLE_ORDER = ['memories', 'rawMessages', 'stickerImages', 'hiddenAnalysis'];
+    var TABLE_LABEL = { memories: '记忆', rawMessages: '聊天原文', stickerImages: '图片', hiddenAnalysis: '隐藏分析' };
+    var TAB_LABEL = { memories: '📒 记忆', rawMessages: '🗣 聊天原文', stickerImages: '🖼 图片', hiddenAnalysis: '🔍 隐藏分析' };
+
+    function $(id) { return document.getElementById(id); }
+    function el(tag, cls, text) {
+        var n = document.createElement(tag);
+        if (cls) n.className = cls;
+        if (text != null) n.textContent = String(text);
+        return n;
+    }
+    function showError(msg) {
+        var e = $('error');
+        e.textContent = msg;
+        e.style.display = 'block';
+    }
+    function clearError() { $('error').style.display = 'none'; $('error').textContent = ''; }
+
+    function asArray(v) { return Array.isArray(v) ? v : []; }
+    function tablesFrom(data) {
+        if (data && data.format === 'yueyue-full-export' && data.tables) {
+            return {
+                memories: asArray(data.tables.memories),
+                rawMessages: asArray(data.tables.rawMessages),
+                stickerImages: asArray(data.tables.stickerImages),
+                hiddenAnalysis: asArray(data.tables.hiddenAnalysis)
+            };
+        }
+        if (Array.isArray(data)) return { memories: data, rawMessages: [], stickerImages: [], hiddenAnalysis: [] };
+        if (data && Array.isArray(data.memories)) return { memories: data.memories, rawMessages: [], stickerImages: [], hiddenAnalysis: [] };
+        return null;
+    }
+
+    function fmtTime(v) {
+        if (!v) return '';
+        var d = new Date(v);
+        if (isNaN(d.getTime())) return String(v).slice(0, 16);
+        var p = function (n) { return String(n).padStart(2, '0'); };
+        return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+    }
+
+    function renderSummary() {
+        var counts = {};
+        TABLE_ORDER.forEach(function (k) { counts[k] = state.tables[k].length; });
+        var box = $('summary');
+        box.innerHTML = '';
+        var defs = [
+            ['memories', '派生记忆'],
+            ['rawMessages', '聊天原文'],
+            ['stickerImages', '图片表情'],
+            ['hiddenAnalysis', '隐藏分析'],
+            ['total', '合计']
+        ];
+        defs.forEach(function (d) {
+            var n = d[0] === 'total' ? TABLE_ORDER.reduce(function (s, k) { return s + counts[k]; }, 0) : counts[d[0]];
+            var card = el('div', 'stat');
+            card.appendChild(el('b', null, n));
+            card.appendChild(el('span', null, d[1]));
+            box.appendChild(card);
+        });
+        box.style.display = 'grid';
+        var meta = [];
+        if (state.data && state.data.exportedAt) meta.push('导出时间：' + fmtTime(state.data.exportedAt));
+        if (state.data && state.data.version) meta.push('格式版本：v' + state.data.version);
+        meta.push('只读打开：不会修改原文件');
+        $('meta').textContent = meta.join('  ·  ');
+    }
+
+    function renderTabs() {
+        var box = $('tabs');
+        box.innerHTML = '';
+        TABLE_ORDER.forEach(function (k) {
+            var b = el('button', 'tab' + (k === state.current ? ' active' : ''), TAB_LABEL[k] + ' ' + state.tables[k].length);
+            b.type = 'button';
+            b.addEventListener('click', function () { state.current = k; state.keyword = ''; $('search').value = ''; renderTabs(); renderList(); });
+            box.appendChild(b);
+        });
+        box.style.display = 'flex';
+    }
+
+    function itemText(k, row) {
+        if (k === 'memories') return String(row && row.content || '');
+        if (k === 'rawMessages') return String(row && row.content || '');
+        if (k === 'hiddenAnalysis') return String(row && row.content || '');
+        return String(row && (row.name || row.mood) || '');
+    }
+
+    function renderList() {
+        var list = $('list');
+        list.innerHTML = '';
+        var k = state.current;
+        var rows = state.tables[k] || [];
+        var q = state.keyword.trim().toLowerCase();
+        if (q) rows = rows.filter(function (r) { return itemText(k, r).toLowerCase().indexOf(q) !== -1; });
+        $('count').textContent = '显示 ' + rows.length + ' / ' + (state.tables[k] || []).length + ' 条';
+        if (!rows.length) {
+            list.appendChild(el('div', 'empty', q ? '没有匹配的记录。' : '这张表是空的。'));
+            return;
+        }
+        rows.slice().reverse().forEach(function (row) {
+            if (k === 'stickerImages') {
+                var card = el('div', 'img-card');
+                var img = document.createElement('img');
+                img.alt = String(row.name || '图片');
+                img.src = String(row.b64 || '');
+                card.appendChild(img);
+                card.appendChild(el('p', null, (row.name || '（未命名）') + ' · ' + (row.mood || '')));
+                list.appendChild(card);
+                return;
+            }
+            var item = el('div', 'item');
+            var head = el('div', 'item-head');
+            if (k === 'memories') {
+                head.appendChild(el('span', 'pill', row.type || '记忆'));
+                if (row.tier) head.appendChild(el('span', 'pill', row.tier));
+                if (row.userWeight) head.appendChild(el('span', 'pill', '权重 ' + row.userWeight));
+                if (row.locked) head.appendChild(el('span', 'pill', '锁定'));
+            } else if (k === 'rawMessages') {
+                head.appendChild(el('span', 'pill', row.role === 'assistant' ? '她' : '你'));
+                if (row.turn != null) head.appendChild(el('span', 'pill', '第 ' + row.turn + ' 轮'));
+            } else {
+                head.appendChild(el('span', 'pill', '仅本地 · 不注入对话'));
+            }
+            var time = row.createdAt || row.time || (row.updatedAt ? new Date(row.updatedAt).toISOString() : '');
+            if (time) head.appendChild(el('span', 'time', fmtTime(time)));
+            item.appendChild(head);
+            item.appendChild(el('div', 'content', itemText(k, row)));
+            list.appendChild(item);
+        });
+    }
+
+    function loadData(data) {
+        clearError();
+        var tables = tablesFrom(data);
+        if (!tables) { showError('这个文件不是玥玥的备份：没找到 memories 或 tables。'); return; }
+        state.data = data;
+        state.tables = tables;
+        state.current = 'memories';
+        state.keyword = '';
+        $('search').value = '';
+        renderSummary();
+        renderTabs();
+        $('toolbar').style.display = 'flex';
+        renderList();
+    }
+
+    function readFile(file) {
+        if (!file) return;
+        clearError();
+        if (file.size > 128 * 1024 * 1024) { showError('文件超过 128 MB，读取器不打开这么大的文件。'); return; }
+        var reader = new FileReader();
+        reader.onload = function () {
+            var data = null;
+            try { data = JSON.parse(String(reader.result || '')); }
+            catch (e) { showError('这个文件不是合法 JSON（可能不是玥玥的备份）。'); return; }
+            loadData(data);
+        };
+        reader.onerror = function () { showError('文件读取失败。'); };
+        reader.readAsText(file, 'utf-8');
+    }
+
+    var drop = $('drop');
+    var file = $('file');
+    drop.addEventListener('click', function () { file.click(); });
+    drop.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); file.click(); } });
+    file.addEventListener('change', function () { readFile(file.files && file.files[0]); });
+    ['dragenter', 'dragover'].forEach(function (t) {
+        drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.add('over'); });
+    });
+    ['dragleave', 'drop'].forEach(function (t) {
+        drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.remove('over'); });
+    });
+    drop.addEventListener('drop', function (e) {
+        var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (f) readFile(f);
+    });
+    $('search').addEventListener('input', function (e) { state.keyword = e.target.value || ''; renderList(); });
+})();
+</script>
+</body>
+</html>

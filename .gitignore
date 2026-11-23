@@ -1,0 +1,23 @@
+# 依赖与运行时
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# 备份 / 临时 / 日志
+*.bak
+*.r9bak
+_backup-*/
+*.log
+tmp/
+
+# 大二进制 / 模型（运行时另行提供，见 THIRD-PARTY-NOTICES.md）
+models/
+*.pth
+*.onnx
+*.zip
+
+# 系统杂项
+.DS_Store
+Thumbs.db

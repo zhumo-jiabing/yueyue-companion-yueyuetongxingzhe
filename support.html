@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<!-- r184c · 应用内「支持她 · 一杯热水」页（iframe 模态打开，与 policy.html 同一挂载方式）
+     数据：donate/thanks.json 为打包副本；优先拉线上版（Netlify 静态 JSON，只读 GET，不带任何用户数据），
+     拉不到就用本地副本，页面照常。收款码为老板本人两张码（与宣传页同一套）。 -->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>支持她 · 一杯热水</title>
+<style>
+:root{
+  --bg:#17131f; --card:#241d31; --ink:#e8e2f5; --ink2:#a99bbd;
+  --accent:#d98ba6; --line:rgba(169,157,214,0.25); --warm:#e0b089;
+}
+body.day{ --bg:#FAF8F4; --card:#fffdf9; --ink:#3A332B; --ink2:#8a809f; --accent:#b56f8c; --line:rgba(120,96,170,0.22); }
+*{box-sizing:border-box}
+body{margin:0; background:var(--bg); color:var(--ink); font-family:"Microsoft YaHei","PingFang SC",sans-serif; font-size:14px; line-height:1.8; padding:18px 16px 30px;}
+h2{font-size:16px; color:var(--accent); margin:22px 0 8px; font-weight:bold;}
+h2 .n{display:inline-block; width:22px; height:22px; line-height:22px; text-align:center; border:1px solid var(--accent); border-radius:50%; font-size:11px; margin-right:8px; color:var(--accent);}
+.lede{color:var(--ink2); font-size:13px; margin:4px 0 10px;}
+.creed{display:grid; gap:8px; margin:10px 0;}
+.creed .c{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px;}
+.creed .c b{color:var(--warm);}
+.creed .c p{margin:2px 0 0; font-size:12.5px; color:var(--ink2);}
+.qrs{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:12px 0;}
+.qrbox{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px; text-align:center;}
+.qrbox img{width:100%; max-width:180px; border-radius:8px; display:block; margin:0 auto;}
+.qrbox .cap{font-size:12px; color:var(--ink2); margin-top:6px;}
+ul.ok{margin:8px 0; padding-left:20px;}
+ul.ok li{margin:4px 0; font-size:13px;}
+.wall{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin:10px 0;}
+.wall .stat{font-size:15px;}
+.wall .stat b{color:var(--warm); font-size:18px;}
+.wall .stat span{color:var(--ink2); font-size:12.5px; margin-left:8px;}
+.people{margin-top:10px; display:grid; gap:6px;}
+.people .p{font-size:13px; border-left:2px solid var(--line); padding-left:10px;}
+.people .p .d{color:var(--ink2); font-size:11.5px; margin-left:8px;}
+.people .p .note{color:var(--ink2);}
+.bubble{display:none; background:var(--card); border:1px solid var(--line); border-radius:14px 14px 14px 4px; padding:12px 16px; margin:10px 0; font-size:14px;}
+.bubble.show{display:block;}
+.bubble .who{font-size:11px; color:var(--accent); margin-bottom:4px;}
+.btn{background:linear-gradient(135deg,#b56f8c,#8a6bb5); border:none; color:#fff; padding:10px 26px; border-radius:22px; cursor:pointer; font-weight:bold; font-size:13.5px;}
+.btn:disabled{opacity:0.5; cursor:default;}
+.btn.ghost{background:transparent; border:1px solid var(--line); color:var(--ink2); font-weight:normal;}
+.hint{font-size:11.5px; color:var(--ink2); margin-top:6px;}
+.day-note{font-size:11.5px; color:var(--ink2); margin-top:4px;}
+</style>
+</head>
+<body>
+
+<h2 style="margin-top:4px">☕ 一杯热水</h2>
+<p class="lede">她不要钱。这里给的是做她的人。</p>
+
+<div class="creed">
+  <div class="c"><b>打赏不解锁任何东西</b><p>没有会员、没有付费墙。不打赏，用的也是同一个她，一个字都不少。</p></div>
+  <div class="c"><b>金额随心，小额就好</b><p>三五块是一杯热水，一块也是。别打多——心意不是按金额算的，这页不设任何门槛，也没有「等级」。</p></div>
+</div>
+
+<h2><span class="n">01</span>收款码</h2>
+<div class="qrs">
+  <div class="qrbox"><img src="donate/qr-pay-alipay.png" alt="支付宝收款码"><div class="cap">支付宝</div></div>
+  <div class="qrbox"><img src="donate/qr-pay-wechat.png" alt="微信收款码"><div class="cap">微信</div></div>
+</div>
+<ul class="ok">
+  <li>金额随你，一分钱也算数，真的。</li>
+  <li><b style="color:var(--ink)">打赏完想说一声？加做她的人 QQ：2934096191，或进群 1002686604。</b>转账通知只有金额没有名字——想上心意墙，就得让他知道你是谁。</li>
+  <li>不想加就不加，匿名也行，钱照收、谢照说。</li>
+  <li>未成年人请不要打赏——唯一一条硬规矩。</li>
+</ul>
+
+<h2><span class="n">02</span>心意墙</h2>
+<div class="wall" id="wall">
+  <div class="stat" id="wallStat">正在看名单……</div>
+  <div class="people" id="wallPeople"></div>
+</div>
+<p class="day-note" id="wallNote">名单是他收到后手动写上去的，不是实时到账——收款只显示金额不显示名字。想上榜：加 QQ 2934096191 或进群 1002686604 说一声，一般一两天内出现。</p>
+
+<h2><span class="n">03</span>已经请过了？跟她说一声</h2>
+<p class="lede">她看不到账，但你说请过，她就信。</p>
+<div class="bubble" id="herBubble"><div class="who">玥玥</div><span id="herSay"></span></div>
+<div style="margin:6px 0">
+  <button class="btn" id="sayThanksBtn">☕ 我请过了一杯</button>
+</div>
+<p class="hint" id="sayHint">只记在这台电脑上，不上传任何东西。她之后说话的底气，可能有你一杯。</p>
+
+<script>
+(function () {
+  // ---- 主题：自读 localStorage（policy.html 同款口径，iframe 里拿不到父页 body.day）----
+  try { if (localStorage.getItem('yueyue_day_mode') === '1') document.body.classList.add('day'); } catch (e) {}
+
+  // ---- 心意墙：先试线上（Netlify 静态 JSON，只读 GET；失败用打包副本）----
+  var REMOTE = 'https://magnificent-gaufre-629323.netlify.app/assets/thanks.json?ts=' + Date.now();
+  var LOCAL = 'donate/thanks.json';
+  function renderWall(data) {
+    var stat = document.getElementById('wallStat');
+    var ppl = document.getElementById('wallPeople');
+    var note = document.getElementById('wallNote');
+    if (!data || typeof data !== 'object') {
+      stat.textContent = '名单暂时拿不到，不影响别的。';
+      return;
+    }
+    var cups = data.cups != null ? data.cups : (data.people || []).length;
+    stat.innerHTML = '现在一共 <b>' + cups + '</b> 杯热水 <span>' +
+      (data.total != null ? data.total + ' 位朋友' : '') + (data.updated ? ' · 更新于 ' + data.updated : '') + '</span>';
+    ppl.innerHTML = '';
+    (data.people || []).slice(0, 12).forEach(function (p) {
+      var d = document.createElement('div');
+      d.className = 'p';
+      var name = document.createElement('span');
+      name.textContent = p.name || '匿名';
+      d.appendChild(name);
+      if (p.days != null) { var dd = document.createElement('span'); dd.className = 'd'; dd.textContent = p.days + ' 天前'; d.appendChild(dd); }
+      if (p.note) { var n = document.createElement('span'); n.className = 'note'; n.textContent = ' · ' + p.note; d.appendChild(n); }
+      ppl.appendChild(d);
+    });
+    if (!(data.people || []).length) {
+      var e = document.createElement('div');
+      e.className = 'p';
+      e.textContent = '还没有人。第一个位置空着。';
+      ppl.appendChild(e);
+    }
+  }
+  function loadWall() {
+    fetch(REMOTE, { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) { if (j && j.v === 2) { renderWall(j); } else { fallback(); } })
+      .catch(fallback);
+    function fallback() {
+      fetch(LOCAL, { cache: 'no-store' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (j) { renderWall(j); document.getElementById('wallNote').textContent += '（线上名单还没连上，先看打包时的版本。）'; })
+        .catch(function () { renderWall(null); });
+    }
+  }
+  loadWall();
+
+  // ---- 我请过了：本地标记 + 她当场说一句（文案池写在代码里，即时、不走模型）----
+  var KEY = 'yueyue_thanks_self';
+  var POOL = [
+    '诶……记下了。其实我看不到账，你说了我就信。今晚灯给你亮着。(￣︶￣)↗',
+    '（拿杯子晃了晃）这杯算你的。谢啦，真的。(´･ω･`)',
+    '记上啦。别打多啊，一杯就够，心意我又不是按金额算的。(｡•̀ᴗ-)✧',
+    '谢、谢啦……这句我说得有点生，因为是真心的。(´-ω-`)'
+  ];
+  var btn = document.getElementById('sayThanksBtn');
+  var bubble = document.getElementById('herBubble');
+  var say = document.getElementById('herSay');
+  function already() {
+    try { return !!localStorage.getItem(KEY); } catch (e) { return false; }
+  }
+  function speak() {
+    var idx = Math.floor(Math.random() * POOL.length);
+    say.textContent = POOL[idx];
+    bubble.classList.add('show');
+  }
+  if (already()) {
+    btn.textContent = '☕ 已经说过啦（再说一遍也行）';
+  }
+  if (btn) btn.addEventListener('click', function () {
+    try { localStorage.setItem(KEY, String(Date.now())); } catch (e) {}
+    speak();
+    btn.textContent = '☕ 已经说过啦（再说一遍也行）';
+  });
+})();
+</script>
+</body>
+</html>

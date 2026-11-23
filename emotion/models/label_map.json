@@ -1,0 +1,24 @@
+{
+  "labels": [
+    "开心",
+    "难过",
+    "生气",
+    "焦虑",
+    "思念",
+    "期待",
+    "平静",
+    "疲惫"
+  ],
+  "mood_map": {
+    "开心": "happy",
+    "难过": "sad",
+    "生气": "serious",
+    "焦虑": "concerned",
+    "思念": "waiting",
+    "期待": "playful",
+    "平静": "idle",
+    "疲惫": "quiet_company"
+  },
+  "emb_dim": 512,
+  "encoder": "BAAI/bge-small-zh-v1.5"
+}

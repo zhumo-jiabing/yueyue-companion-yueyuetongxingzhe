@@ -1,0 +1,86 @@
+{
+  "name": "yueyueapp",
+  "version": "0.3.0-beta.7",
+  "description": "YueYue Backend Proxy - 玥玥陪伴AI后端代理",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "electron": "43.3.0",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "com.yourname.yueyue",
+    "productName": "玥玥",
+    "asar": false,
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "*.html",
+      "*.js",
+      "*.mp4",
+      "*.webm",
+      "*.webp",
+      "*.png",
+      "*.jpg",
+      "*.css",
+      "*.wav",
+      "*.txt",
+      "emotion/**",
+      "stt/**",
+      "!stt/__pycache__/**",
+      "live2d/**",
+      "!emotion/train_emotion.py",
+      "!emotion/verify_dataset.py",
+      "!emotion/emotion-tools.md",
+      "!emotion/dataset_skeleton.md",
+      "!emotion/samples_template.jsonl",
+      "!emotion/data/**",
+      "!emotion/models/emb_cache_*.npz",
+      "!emotion/models/head_meta.json",
+      "!live2d/runtime.html.live2d-hidden",
+      "!live2d-pack.zip",
+      "!pet_idle.webm",
+      "!**/node_modules/onnxruntime-node/bin/napi-v6/darwin/**",
+      "!**/node_modules/onnxruntime-node/bin/napi-v6/linux/**",
+      "!**/node_modules/onnxruntime-node/bin/napi-v6/win32/arm64/**",
+      "!**/node_modules/onnxruntime-web/**",
+      "!**/node_modules/**/*.md",
+      "!.env",
+      "!.env.*",
+      "!*.log",
+      "!**/*.bak-*",
+      "node_modules/@huggingface/transformers/.cache/**"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "artifactName": "Yueyue-0.3.0-beta.6-setup.exe"
+    }
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^4.2.0",
+    "onnxruntime-node": "1.24.3"
+  }
+}

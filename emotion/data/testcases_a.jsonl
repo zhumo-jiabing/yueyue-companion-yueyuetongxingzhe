@@ -1,0 +1,12 @@
+# testcases_a.jsonl —— 16-testcases 表A 验收 10 条
+# expected_label 为空 = 预期克制(不贴标签); #10 表A 口径主情绪 难过/疲惫 均可(训练集内该句标 疲惫)
+{"text": "今天发工资啦！晚上请你吃火锅！", "expected_label": "开心"}
+{"text": "我又没考上……是不是我真的很没用", "expected_label": "难过"}
+{"text": "这破电脑又卡了，气死我了！", "expected_label": "生气"}
+{"text": "明天要上台讲方案，我慌得睡不着", "expected_label": "焦虑"}
+{"text": "你都不回我消息……好想你啊", "expected_label": "思念"}
+{"text": "哦。", "expected_label": ""}
+{"text": "哈哈笑死我了你这什么鬼主意", "expected_label": "开心"}
+{"text": "我没事，真的没事。", "expected_label": ""}
+{"text": "终于把 bug 修好了，舒服！", "expected_label": "开心"}
+{"text": "唉……又一天过去了，什么都没做", "expected_label": "疲惫"}

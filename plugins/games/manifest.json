@@ -1,0 +1,12 @@
+{
+  "id": "games",
+  "name": "小游戏",
+  "version": "1.0.0",
+  "description": "独立游戏小窗（猜拳 / 数数 / 扑克等），结束自动关闭，结果经 BroadcastChannel 回主窗。",
+  "main": "index.js",
+  "defaultEnabled": true,
+  "builtin": true,
+  "permissions": ["window:create"],
+  "capabilities": ["ui", "window"],
+  "channels": ["open-game"]
+}

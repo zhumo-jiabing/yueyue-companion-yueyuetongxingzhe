@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>visual harness r189</title>
+<style>body{margin:0;background:#777;font:12px monospace}#out{white-space:pre-wrap;background:#fff;padding:8px;max-height:40vh;overflow:auto}iframe{border:0;display:block;background:#fff}</style>
+</head><body>
+<pre id="out">measuring...</pre>
+<iframe id="f"></iframe>
+<script>
+var q = new URLSearchParams(location.search);
+var W = parseInt(q.get('w')||'780',10);
+var SRC = q.get('src')||'/web/landing.html';
+var f = document.getElementById('f');
+f.style.width = W+'px'; f.style.height = '1400px';
+f.src = SRC + (SRC.indexOf('?')>=0?'&':'?') + '_t=' + Date.now();
+function lum(r,g,b){var a=[r,g,b].map(function(v){v/=255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4)});return 0.2126*a[0]+0.7152*a[1]+0.0722*a[2]}
+function parseC(s){var m=s.match(/rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?\)/);if(!m)return null;return{r:+m[1],g:+m[2],b:+m[3],a:m[4]===undefined?1:+m[4]}}
+function effBg(el,doc){var n=el;while(n&&n.nodeType===1){var c=parseC(doc.defaultView.getComputedStyle(n).backgroundColor);if(c&&c.a>0.95)return c;if(c&&c.a>0){/* semi: blend over white */return{r:c.r*c.a+255*(1-c.a),g:c.g*c.a+255*(1-c.a),b:c.b*c.a+255*(1-c.a),a:1}}n=n.parentElement}return{r:255,g:255,b:255,a:1}}
+f.onload = function(){ setTimeout(measure, 900); };
+function measure(){
+  var doc = f.contentDocument, win = f.contentWindow;
+  var R = {src:SRC, w:W, innerWidth:win.innerWidth, scrollW:doc.documentElement.scrollWidth, bodyScrollW:doc.body.scrollWidth, docH:doc.documentElement.scrollHeight, issues:[], key:{}};
+  if (doc.documentElement.scrollWidth > win.innerWidth+1) R.issues.push('H-OVERFLOW doc scrollWidth '+doc.documentElement.scrollWidth+' > '+win.innerWidth);
+  var all = doc.querySelectorAll('body *');
+  var small=[], lowcon=[], off=[];
+  all.forEach(function(el){
+    var st = win.getComputedStyle(el);
+    if (st.display==='none'||st.visibility==='hidden') return;
+    var rect = el.getBoundingClientRect();
+    if (rect.width===0&&rect.height===0) return;
+    if (rect.right > win.innerWidth+2 || rect.left < -2) {
+      if (el.tagName!=='HTML'&&el.tagName!=='BODY') off.push(el.tagName+'.'+(el.className||'').toString().slice(0,30)+' L'+Math.round(rect.left)+' R'+Math.round(rect.right));
+    }
+    var txt=''; for(var i=0;i<el.childNodes.length;i++){if(el.childNodes[i].nodeType===3)txt+=el.childNodes[i].textContent.trim()}
+    if(!txt) return;
+    var fs = parseFloat(st.fontSize);
+    if (fs < 12) small.push(el.tagName+'.'+(el.className||'').toString().slice(0,24)+' '+fs+'px "'+txt.slice(0,18)+'"');
+    var fg = parseC(st.color); if(!fg) return;
+    var bg = effBg(el,doc);
+    var L1=lum(fg.r,fg.g,fg.b), L2=lum(bg.r,bg.g,bg.b);
+    var cr=(Math.max(L1,L2)+0.05)/(Math.min(L1,L2)+0.05);
+    var bold=parseInt(st.fontWeight,10)>=700;
+    var large=fs>=24||(bold&&fs>=18.66);
+    var need=large?3:4.5;
+    if(cr<need) lowcon.push(el.tagName+'.'+(el.className||'').toString().slice(0,24)+' '+fs+'px cr='+cr.toFixed(2)+' fg='+st.color+' bg=rgb('+Math.round(bg.r)+','+Math.round(bg.g)+','+Math.round(bg.b)+') "'+txt.slice(0,14)+'"');
+  });
+  R.offViewport=off.slice(0,20); R.smallText=small.slice(0,20); R.lowContrast=lowcon.slice(0,25);
+  ['.hero h1','.hero .sub','.figure','.figure img','.dlbox','.nots','.join','.qr','.qrhint','footer','.hv'].forEach(function(sel){
+    var els=doc.querySelectorAll(sel); var arr=[];
+    els.forEach(function(el){var r=el.getBoundingClientRect();arr.push({x:Math.round(r.left),y:Math.round(r.top+win.scrollY),w:Math.round(r.width),h:Math.round(r.height)})});
+    R.key[sel]=arr;
+  });
+  var hv=doc.querySelector('.hv'); if(hv){var st=win.getComputedStyle(hv);R.key.hvStyle={fs:st.fontSize,color:st.color,bl:st.borderLeftColor,display:st.display}}
+  var dl=doc.querySelector('.dl-fallback'); if(dl){R.key.dlBg=win.getComputedStyle(dl).backgroundColor}
+  var js = JSON.stringify(R);
+  document.getElementById('out').textContent = js;
+  for (var i=0;i<js.length;i+=700) console.log('M'+('0'+Math.floor(i/700)).slice(-2)+':'+js.slice(i,i+700));
+  console.log('MEASURE_DONE len='+js.length);
+}
+</script>
+</body></html>
