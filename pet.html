@@ -3,15 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self'; connect-src 'self'">
-    <title>玥玥 · 气泡</title>
+    <title>玥玥 · 桌宠</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; }
         body {
             background: transparent;
             overflow: hidden;
             user-select: none;
             font-family: 'Microsoft YaHei', sans-serif;
-            padding: 4px;
+            padding: 0;
+        }
+        /* [r230] Q版桌宠：角色在上，气泡卡在下；窗口改为 340×390，展开看我时加高到 560 */
+        #petStage {
+            width: 100%; height: 100%; overflow: hidden;
+            display: flex; flex-direction: column; justify-content: flex-end;
+        }
+        #qStage {
+            flex: 0 0 240px; min-height: 0; position: relative;
+            display: flex; align-items: flex-end; justify-content: center;
+            pointer-events: none;
+        }
+        /* [r231] Q版改透明抠图：rembg/U2Net 出的 alpha PNG。
+           不再用白色贴纸卡；只保留角色本身的透明像素与一层柔和投影，避免在浅色桌面上糊掉。 */
+        #qCard {
+            width: 238px; height: 238px;
+            border-radius: 0;
+            background: transparent;
+            box-shadow: none;
+            overflow: visible;
+            display: flex; align-items: flex-end; justify-content: center;
+            pointer-events: auto; cursor: grab;
+        }
+        #qPet {
+            height: 232px; width: 232px; object-fit: contain;
+            transform-origin: bottom center; pointer-events: none;
+            animation: q-breathe 4.2s ease-in-out infinite;
+            -webkit-user-drag: none;
+            filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.42));
+        }
+        #qPet.talking { animation: q-talk 0.38s ease-in-out 3; }
+        @keyframes q-breathe {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-2px) scale(1.008); }
+        }
+        @keyframes q-talk {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            #qPet { animation: none; }
         }
         /* 气泡卡: 夜青玻璃+暖金(2026-09-09 重设计, 与主窗紫系明确区分, 消除视觉疲劳) */
         /* 第63轮: 透明度 0.62 → 0.88。桌宠窗是 transparent 窗口, 0.62 时桌面壁纸会透上来,
@@ -20,7 +61,7 @@
         :root { --pet-alpha: 0.88; }
         #bubble {
             position: relative;
-            width: 100%; height: 100%;
+            width: 100%; flex: 1 1 auto; min-height: 150px;
             background: linear-gradient(150deg, rgba(16, 47, 66, var(--pet-alpha)), rgba(11, 33, 50, var(--pet-alpha)));
             border: 1px solid rgba(126, 196, 214, 0.34);
             border-radius: 20px;
@@ -50,6 +91,8 @@
             display: flex; align-items: center; gap: 8px;
             padding: 8px 10px 0 10px;
         }
+        /* [r230] Q版桌宠：角色本体已是玥玥，气泡卡不再重复一个 34px 头像 */
+        #petStage .avatar-wrap { display: none; }
         .avatar-wrap { position: relative; flex: none; }
         .avatar {
             width: 34px; height: 34px; border-radius: 12px; object-fit: cover;
@@ -242,7 +285,11 @@
 </style>
 </head>
 <body>
-    <!-- 第67轮: tabindex + aria-label 让键盘用户也能走到气泡卡; Enter/空格 等价于「双击打开聊天」 -->
+    <div id="petStage">
+        <div id="qStage" aria-hidden="true">
+            <div id="qCard"><img id="qPet" src="yueyue_q_pet_idle.png" alt=""></div>
+        </div>
+    <!-- 第67轮: tabindex + aria-label 让键盘用户也能走到气泡卡; Enter/空格 等价于「双击打开聊天」 -->
     <div id="bubble" tabindex="0" aria-label="跟玥玥说话（按回车打开聊天小窗）">
         <div class="b-head">
             <div class="avatar-wrap">
@@ -281,6 +328,7 @@
             <button id="bFocus" title="指定观察窗口(看我)">👀</button>
             <button class="close" id="bClose" title="收起气泡（重启后会回来）">✕</button>
         </div>
+    </div>
     </div>
     <script src="shared.js"></script>
     <script src="analytics.js"></script>

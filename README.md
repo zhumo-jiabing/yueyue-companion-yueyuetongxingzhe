@@ -8,7 +8,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-E0A63C?style=flat-square" alt="AGPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Windows-23211E?style=flat-square" alt="Windows">
   <img src="https://img.shields.io/badge/engine-Electron%20%2B%20Live2D-23211E?style=flat-square" alt="Electron + Live2D">
-  <img src="https://img.shields.io/badge/version-0.3.0--beta.8-E0A63C?style=flat-square" alt="0.3.0-beta.8">
+  <img src="https://img.shields.io/badge/version-0.3.0--beta.9-E0A63C?style=flat-square" alt="0.3.0-beta.9">
 </p>
 
 <p align="center">
@@ -17,28 +17,39 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/zhumo-jiabing/yueyue-download/releases/tag/v0.3.0-beta.8"><b>⬇ 软件下载</b></a> ·
+  <a href="https://github.com/zhumo-jiabing/yueyue-download/releases/tag/v0.3.0-beta.9"><b>⬇ 软件下载</b></a> ·
   <a href="https://magnificent-gaufre-629323.netlify.app/"><b>宣传页</b></a> ·
   <a href="https://magnificent-gaufre-629323.netlify.app/support.html"><b>打赏页</b></a> ·
   QQ 群 <b>1002686604</b>（404号玥玥小窝） ·
-  <a href="OPEN-SOURCE-BOUNDARY.md"><b>开源边界</b></a> ·
+  <a href="OPEN-SOURCE-BOUNDARY.md"><b>开源边界</b></a> · <a href="CHANGELOG.md"><b>更新日志</b></a> ·
   <a href="THIRD-PARTY-NOTICES.md"><b>第三方许可</b></a>
 </p>
 
 ---
 
-## 下载（Windows · 0.3.0-beta.8）
+## 下载（Windows · 0.3.0-beta.9）
 
 | 件 | 链接 | 说明 |
 |---|---|---|
-| 主程序安装包 | [Yueyue-Setup-0.3.0-beta.8.exe](https://github.com/zhumo-jiabing/yueyue-download/releases/download/v0.3.0-beta.8/Yueyue-Setup-0.3.0-beta.8.exe) | 249,332,436 B · sha256 前16 `28773942558ada01`；本仓库 [Release v0.3.0-beta.8](https://github.com/zhumo-jiabing/yueyue-companion-yueyuetongxingzhe/releases/tag/v0.3.0-beta.8) 亦附同一件 |
-| 发布页（更新日志/披露） | [yueyue-download · v0.3.0-beta.8](https://github.com/zhumo-jiabing/yueyue-download/releases/tag/v0.3.0-beta.8) | 公开直链，无需登录 |
+| 主程序安装包 | [Yueyue-Setup-0.3.0-beta.9.exe](https://github.com/zhumo-jiabing/yueyue-download/releases/download/v0.3.0-beta.9/Yueyue-Setup-0.3.0-beta.9.exe) | 248,728,083 B · sha256 前16 `94B7D43A484DE2C0`；安装包在 [下载仓库 Release](https://github.com/zhumo-jiabing/yueyue-download/releases/tag/v0.3.0-beta.9)；本仓库 Release 只放源码与说明 |
+| 发布页（更新日志/披露） | [yueyue-download · v0.3.0-beta.9](https://github.com/zhumo-jiabing/yueyue-download/releases/tag/v0.3.0-beta.9) | 公开直链，无需登录 |
 | 语音包（让她出声） | QQ 群文件 / 网盘（见群公告） | GPU 1.7B 约 6 GB，超 GitHub 单附件 2 GB 上限故不挂 GitHub；主程序默认不含语音，装完会打字、不出声 |
 | 宣传页（实机图/规格/路线图） | <https://magnificent-gaufre-629323.netlify.app/> | 暖纸配色，含 6 张软件内实机截图 |
 
 > 内测版 · 本地单机桌面工具 · 法律评估中。语音与立绘含 AI 生成内容。不满 18 岁不适用。
 > 危机时本软件不会自动通知任何第三方；紧急帮助请拨打 12356 / 120 / 110。
 > 安装包未签名：SmartScreen 提示时选「仍要运行」。核心人格/双脑/记忆/合规文案为闭源专有（见下）。
+
+> **本地优先的准确含义**：聊天与记忆存在你自己的电脑；发消息时，本轮对话和少量从本机挑出的记忆会发送给你自己配置的模型服务商（DeepSeek / 智谱等），整库不上传。完整隐私政策在应用内首次启动展示。
+
+## 0.3.0-beta.9 更新了什么
+
+- **透明 Q 版桌宠**：去掉白底卡片，Q 版直接浮在桌面；能拖、能展开、双击开聊天、说话弹跳。
+- **打游戏自动收起**：识别到游戏前台就隐藏，离开后自动回来；托盘和 `Ctrl+Alt+P` 可手动显示/隐藏。
+- **夜间主题提亮**：保留青金配色，抬黑位；白天主题不变。
+- **版本号**：`0.3.0-beta.9`。
+
+**已知问题**：Q 图仍有原图白色描边/靴下白点；无真眨眼/口型；只识别 17 款具名游戏；安装包未签名。
 
 ## 她是什么 / 不是什么
 
@@ -55,7 +66,7 @@
 | 双脑对话 | 思考脑定调、说话嘴流式，反傲慢铁律三处落地 | 核心闭源 |
 | 本地记忆 | IndexedDB 白盒分层，排序与注入上限可查 | 核心闭源 |
 | 本地 TTS | 代理 + 看门狗 + 多引擎（Qwen3 / SoVITS / IndexTTS / Kokoro） | [`tts-server.js`](tts-server.js) · [`stt/`](stt/) |
-| 会动的她 | Live2D 桌宠 + 立绘视频情绪层 | [`pet.html`](pet.html) · [`live2d-bridge.js`](live2d-bridge.js) |
+| 会动的她 | 透明 Q版桌宠 + 立绘视频情绪层 | [`pet.html`](pet.html) · [`yueyue_q_pet_idle.png`](yueyue_q_pet_idle.png) |
 | 守夜 · 塔防 | 摆灯守主灯；失败不惩罚，「灭就灭了，我还在这儿」 | [`night.js`](night.js) · [`game.html`](game.html) |
 | 插件微内核 | 默认仅 games / websearch 开，一键回退 | [`plugins/`](plugins/) · [`plugin-host.js`](plugin-host.js) |
 | 对外介绍页 | 暖纸 `#FAF8F4` + 暖墨 `#23211E`，不用深色霓虹冒充科技感 | [`web/`](web/) |
@@ -95,7 +106,7 @@
 
 ## 获取与反馈
 
-- 软件下载：<https://github.com/zhumo-jiabing/yueyue-download/releases/tag/v0.3.0-beta.8>
+- 软件下载：<https://github.com/zhumo-jiabing/yueyue-download/releases/tag/v0.3.0-beta.9>
 - 宣传页：<https://magnificent-gaufre-629323.netlify.app/>
 - 打赏页：<https://magnificent-gaufre-629323.netlify.app/support.html>（打赏不解锁任何功能）
 - QQ 群：**1002686604**（404号玥玥小窝）

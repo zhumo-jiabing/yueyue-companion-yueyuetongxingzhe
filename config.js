@@ -5,7 +5,7 @@
 // 例如 BILLING = { tiers: [...], features: {...} },当前全部功能免费开放。
 window.APP_CONFIG = {
     // 2026-09-10 公众测试版标识(设置页「关于」显示)
-    APP_VERSION: '0.3.0-beta.7',
+    APP_VERSION: '0.3.0-beta.9',
     // 2026-11-23 r188: 宣传页「拿到这一份」下载段读这里。
     // url 留空 = 页面显示「内测版在群里发」，不会出现点不动的按钮。
     // 填了才渲染下载按钮 + 备用地址；sizeMB 只是给用户一个心理预期，不影响下载。
@@ -13,7 +13,7 @@ window.APP_CONFIG = {
         url: '',
         mirror: '',
         sizeMB: 252,
-        version: '0.3.0-beta.7',
+        version: '0.3.0-beta.9',
         note: ''
     },
     BUILD_CHANNEL: '公众测试版',

@@ -32,6 +32,11 @@
             // 第71轮: *动作*旁白: 模型偶尔用 *低头* 这种单星号写动作，旧渲染会原样露出星号。
             // 与 stripEmphasis 同一边界（前后不紧邻词字符/星号），且只转换含中文的片段。
             .replace(/(?<![\w*])\*([^*\n]{1,40})\*(?![\w*])/g, (m, inner) => /[\u4e00-\u9fa5]/.test(inner) ? '（' + inner + '）' : m)
+            // [r225] 颜文字/抱抱标签不能被行宽拆开：套一层 nowrap，避免把 (´-ω-`) 拆成两行。
+            // 先处理「【抱抱你】+脸」这一组，让标签和脸一起换行，而不是标签留在上一行。
+            .replace(/(【[^】\n]{1,40}】)(\s*)(\([^()\n]{1,40}\))/g, (m, tag, sp, face) => /[^\x00-\x7F]/.test(face.slice(1, -1)) ? '<span class="kao">' + tag + sp + face + '</span>' : m)
+            .replace(/【[^】\n]{1,40}】/g, (m) => '<span class="kao">' + m + '</span>')
+            .replace(/\(([^()\n]{1,40})\)/g, (m, inner) => /[^\x00-\x7F]/.test(inner) ? '<span class="kao">' + m + '</span>' : m)
             .replace(/\n/g, '<br>');
     }
 
@@ -77,9 +82,13 @@
         const voices = [];
         // 第142轮: 统一容错 —— 冒号可省、内容可空、行首无冒号写法也认。
         // 现场（第141轮 g2e R9）模型写过 `【心声】心跳快了半拍…`（无冒号），旧正则零提取 → 原文内联漏在气泡里。
+        // [r224d] 心声不是元评论/调试口：模型偶尔会写「现在玥玥好像脑袋空空，
+        // 读不出来心声啊喂！」这类自称第三人称、讨论"心声"本身的句子；展示层直接丢掉。
+        // 只拦明显的元评论，不拦「他叫我玥玥」这种真的在说用户怎么称呼她、且没有元词的心声。
+        const HEART_META_RE = /读不出来|脑袋空空|心声啊喂|^(?:现在)?玥玥(?:好像|觉得|心里|的)?|玥玥.*(?:读不出来|脑袋空空|心声啊喂)|(?:读不出来|脑袋空空|心声啊喂).*玥玥/;
         const pushVoice = (voice) => {
             const v = stripEmphasis(fixDict(String(voice == null ? '' : voice).trim()));
-            if (v) voices.push(v);
+            if (v && !HEART_META_RE.test(v)) voices.push(v);
         };
         let cleaned = String(text);
         // 1) 冒号版（全/半角），允许空内容

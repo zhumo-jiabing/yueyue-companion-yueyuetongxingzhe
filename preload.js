@@ -4,6 +4,8 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('yueyue', {
     // 2026-09-10 公众测试版: 复制文本(诊断信息等)走主进程剪贴板, 更可靠
     copyText: (text) => ipcRenderer.invoke('app:copy-text', text),
+    // [r221 P8] 复制图片: 分享卡 PNG → 系统剪贴板(用户手动粘贴, 不自动发出)
+    copyImage: (dataURL) => ipcRenderer.invoke('clipboard:write-image', dataURL),
     // 第99轮 A7-P1-6: 只读的本机信息(目前只有数据目录), 用于「关于玥玥」里显示真实路径
     info: {
         dataPath: () => ipcRenderer.invoke('app:data-path'),
@@ -14,6 +16,8 @@ contextBridge.exposeInMainWorld('yueyue', {
     },
     // 窗口控制
     openPet: () => ipcRenderer.send('open-pet'),
+    // [r231] 游戏模式：主窗识别到前台游戏时让桌宠自动收起，退出后恢复
+    setPetGameMode: (on) => ipcRenderer.send('pet:game-mode', !!on),
     // 2026-09-12 无边框主窗: 标题栏窗口按钮(最小化/最大化还原/关闭/查询状态)。
     // 主进程侧有 IPC 来源校验守卫(installIpcGuard), 这些通道只接受本应用窗口的调用。
     win: {
@@ -51,6 +55,9 @@ contextBridge.exposeInMainWorld('yueyue', {
         onDone: (fn) => ipcRenderer.on('ai:done', (event, data) => fn(data)),
         onError: (fn) => ipcRenderer.on('ai:error', (event, data) => fn(data)),
         onPhase: (fn) => ipcRenderer.on('ai:phase', (event, data) => fn(data)),
+        // [r221 P4] 成本计量事件（嘴/思考脑/摘要/补全/探针）+ 渲染层算价入口（搜索 usage 用，纯本机）
+        onCost: (fn) => ipcRenderer.on('ai:cost', (event, data) => fn(data)),
+        computeCost: (payload) => ipcRenderer.invoke('cost:compute', payload),
     },
 
     // 语音合成(本地 GPT-SoVITS API,主进程代理 + 显卡自适应配置)
@@ -144,6 +151,16 @@ contextBridge.exposeInMainWorld('yueyue', {
     stage: {
         getMax: () => ipcRenderer.invoke('stage:get-max'),
         setMax: (idx) => ipcRenderer.invoke('stage:set-max', idx),
+    },
+
+    // [r221 P1] 世界书（主进程读 app/worldbook.json）+ world_events 台账文件双份（抗清缓存备份）
+    worldbook: {
+        get: () => ipcRenderer.invoke('worldbook:get'),
+    },
+    worldEvents: {
+        get: () => ipcRenderer.invoke('world-events:get'),
+        append: (entry) => ipcRenderer.invoke('world-events:append', entry),
+        remove: (at) => ipcRenderer.invoke('world-events:remove', at),
     },
 
     // 人格包导出(2026-11-17 第134轮 门槛5): 走主进程「另存为」, 写盘成功后才回报成功

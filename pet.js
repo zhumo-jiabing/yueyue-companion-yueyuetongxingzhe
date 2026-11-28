@@ -12,6 +12,7 @@
     try { window.addEventListener('storage', (e) => { if (!e.key || e.key === 'yueyue_day_mode') applyDayClass(); }); } catch (e) { /* 忽略 */ }
 
     const bubble = document.getElementById('bubble');
+    const qPet = document.getElementById('qPet');
     const textEl = document.getElementById('bText');
     const iconEl = document.getElementById('bIcon');
     const subEl = document.getElementById('bSub');
@@ -29,6 +30,10 @@
         if (label) subEl.textContent = label;
         bubble.classList.add('flash');
         setTimeout(() => bubble.classList.remove('flash'), 1000);
+        if (qPet) {
+            qPet.classList.add('talking');
+            setTimeout(() => qPet.classList.remove('talking'), 1200);
+        }
         clearTimeout(idleTimer);
         idleTimer = setTimeout(() => {
             subEl.textContent = '她说的话会出现在这里';
@@ -54,6 +59,9 @@
         }, 1500);
     });
     document.getElementById('bChat').addEventListener('click', openChat);
+    // 双击 Q 版立绘也能打开聊天；单次拖动不会误触
+    const qCard = document.getElementById('qCard');
+    if (qCard) qCard.addEventListener('dblclick', openChat);
 
     // 第67轮: 键盘可达。气泡卡接了 click 做「双击防误触」, 但键盘用户之前完全到不了这张卡。
     // 现在 #bubble 可 Tab 聚焦, Enter/空格 直接打开聊天小窗(键盘没有误触问题, 不需要双击)。
@@ -76,7 +84,7 @@
         tellBox.classList.toggle('show', open);
         // 第十五轮(用户反馈5): 高度维持 560 不变。重叠的真因是 flex 项被压缩(pet.html 已加 flex:none + #tellBox 滚动),
         // 实测修好后内容总高 ~463px, 560 足够(提到 640 反而在气泡下方留 141px 空白透明区)。
-        try { window.yueyue.setPetHeight(open ? 560 : 190); } catch (e) { /* 忽略 */ }
+        try { window.yueyue.setPetHeight(open ? 560 : 390); } catch (e) { /* 忽略 */ }
         if (open) {
             try { document.getElementById('petWinPicker').open = true; } catch (e) { /* 忽略 */ }
             refreshPetWinList();
@@ -207,19 +215,19 @@
     // 松手后残余 setPosition 回弹。新实现: pointerdown 时把光标屏幕坐标锚给主进程(pet:drag-start),
     // 移动时只报当前光标屏幕坐标(每帧最多一次, requestAnimationFrame 合并), 主进程按固定偏移算目标位置。
     (function setupPetDrag() {
-        const bubble = document.getElementById('bubble');
-        if (!bubble) return;
+        const stage = document.getElementById('petStage') || document.getElementById('bubble');
+        if (!stage) return;
         let dragging = false, moved = false, lx = 0, ly = 0;
         let raf = null, pending = null;
-        bubble.addEventListener('pointerdown', (e) => {
+        stage.addEventListener('pointerdown', (e) => {
             if (e.target.closest('button, input, details, #petWinList, a, textarea')) return;
             if (e.button !== 0) return;
             dragging = true; moved = false; lx = e.clientX; ly = e.clientY;
             pending = [e.screenX, e.screenY];
-            try { bubble.setPointerCapture(e.pointerId); } catch (e2) { /* 忽略 */ }
+            try { stage.setPointerCapture(e.pointerId); } catch (e2) { /* 忽略 */ }
             try { if (window.yueyue && window.yueyue.petDragStart) window.yueyue.petDragStart(e.screenX, e.screenY); } catch (e2) { /* 忽略 */ }
         });
-        bubble.addEventListener('pointermove', (e) => {
+        stage.addEventListener('pointermove', (e) => {
             if (!dragging) return;
             const dx = e.clientX - lx, dy = e.clientY - ly;
             if (!moved && Math.abs(dx) + Math.abs(dy) < 4) return;
@@ -243,10 +251,10 @@
             try { if (window.yueyue && window.yueyue.petDragEnd) window.yueyue.petDragEnd(); } catch (e2) { /* 忽略 */ }
             setTimeout(() => { moved = false; }, 150);
         };
-        bubble.addEventListener('pointerup', endDrag);
-        bubble.addEventListener('pointercancel', endDrag);
+        stage.addEventListener('pointerup', endDrag);
+        stage.addEventListener('pointercancel', endDrag);
         // 刚拖完的 click 不落到子元素(防误触按钮)
-        bubble.addEventListener('click', (e) => {
+        stage.addEventListener('click', (e) => {
             if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; }
         }, true);
     })();

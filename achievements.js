@@ -699,6 +699,9 @@
     let shareId = null;
     let shareDataUrl = null;
     function openShare(id) {
+        // [r221 P8] 统一分享面板(三类暖纸卡 + DIY + 图片剪贴板)。旧 ach-share 弹窗 DOM 保留
+        // (index.js:6824-6826 旧接线仍引用其 id), 但正常路径不再打开它。
+        if (window.ShareCards && window.ShareCards.open) { window.ShareCards.open('ach', id); return; }
         const ov = document.getElementById('ach-share');
         if (!ov) return;
         shareId = id;
@@ -741,17 +744,24 @@
         if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).catch(fallback);
         else fallback();
     }
+    // [r221 P8] 避头尾：收尾标点不许落新行首（与 share-cards.js 同规则），容许一字宽溢出
+    const NO_LINE_START = '。，、；：？！）」』”’…·';
     function wrapText(ctx, text, cx, y, maxW, lineH) {
         const chars = text.split('');
         let line = '';
         let yy = y;
         for (const ch of chars) {
-            if (ctx.measureText(line + ch).width > maxW) { ctx.fillText(line, cx, yy); line = ch; yy += lineH; }
+            if (ctx.measureText(line + ch).width > maxW && line && NO_LINE_START.indexOf(ch) < 0) { ctx.fillText(line, cx, yy); line = ch; yy += lineH; }
             else line += ch;
         }
         ctx.fillText(line, cx, yy);
     }
-    function buildShareCard(id) {
+    // [r221 P8] 暖纸合规修正: 底 #FAF8F4 / 字 #23211E / 单一克制主色 #A9713B(茶金),
+    // 保留小说章节页排版气质; 去掉深色渐变(#131124系)+星点+霓虹光晕(图07/§十六硬红线)。
+    // opts: {hideTime 藏解锁时间, hideDays 藏相识天数, signature 署名「竹墨 · 平台搜竹箓」}
+    // texts: 实际画进 canvas 的全部字符串审计数组(隐私断言用; 卡面绝不读对话/记忆原文)。
+    function buildShareCard(id, opts) {
+        opts = opts || {};
         return new Promise((resolve) => {
             const def = defOf(id);
             const un = state()[id];
@@ -763,37 +773,24 @@
             canvas.width = 640;
             canvas.height = 960;
             const ctx = canvas.getContext('2d');
-            const g = ctx.createLinearGradient(0, 0, 0, 960);
-            g.addColorStop(0, '#131124');
-            g.addColorStop(0.55, '#1a1533');
-            g.addColorStop(1, '#251a3d');
-            ctx.fillStyle = g;
+            const texts = [];
+            const rawFill = ctx.fillText.bind(ctx);
+            ctx.fillText = function (t, x, y, mw) { texts.push(String(t)); return mw === undefined ? rawFill(t, x, y) : rawFill(t, x, y, mw); };
+            const PAPER = '#FAF8F4', INK = '#23211E', SUB = '#6b6459', FAINT = '#8a8276', LINE = '#e3ddd2', ACCENT = '#A9713B';
+            ctx.fillStyle = PAPER;
             ctx.fillRect(0, 0, 640, 960);
-            for (let i = 0; i < 110; i++) {
-                const x = Math.random() * 640;
-                const y = Math.random() * 960;
-                const rad = Math.random() * 1.6 + 0.4;
-                ctx.globalAlpha = 0.2 + Math.random() * 0.65;
-                ctx.fillStyle = Math.random() > 0.85 ? r.color : '#ffffff';
-                ctx.beginPath();
-                ctx.arc(x, y, rad, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            ctx.globalAlpha = 1;
-            const halo = ctx.createRadialGradient(320, 220, 20, 320, 220, 330);
-            halo.addColorStop(0, r.glow);
-            halo.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.fillStyle = halo;
-            ctx.fillRect(0, 0, 640, 480);
+            // 书页双线框(下方留出版权页脚带)
+            ctx.strokeStyle = LINE; ctx.lineWidth = 2; ctx.strokeRect(22, 22, 596, 876);
+            ctx.strokeStyle = 'rgba(169,113,59,0.35)'; ctx.lineWidth = 1; ctx.strokeRect(30, 30, 580, 860);
             ctx.textAlign = 'center';
             // 小说章节页式头部: 章号 + 品牌
-            ctx.fillStyle = 'rgba(200,190,230,0.75)';
+            ctx.fillStyle = FAINT;
             ctx.font = '20px "Microsoft YaHei"';
             ctx.fillText('梦 界 志 · 成 就 卷', 320, 92);
-            ctx.fillStyle = r.color;
+            ctx.fillStyle = ACCENT;
             ctx.font = 'bold 26px "Microsoft YaHei"';
-            ctx.fillText('第 ' + chapterIdx + ' 章 · ' + r.label, 320, 134);
-            ctx.fillStyle = '#ffb4c8';
+            ctx.fillText('第 ' + chapterIdx + ' 章 · ' + r.icon + ' ' + r.label, 320, 134);
+            ctx.fillStyle = INK;
             ctx.font = 'bold 30px "Microsoft YaHei"';
             ctx.fillText('玥玥 · 心灵同行者', 320, 176);
             const finish = () => {
@@ -804,20 +801,20 @@
                 ctx.clip();
                 try {
                     if (img && img.naturalWidth > 0) ctx.drawImage(img, 236, 184, 168, 168);
-                    else { ctx.fillStyle = '#2a2340'; ctx.fillRect(236, 184, 168, 168); }
-                } catch (e) { ctx.fillStyle = '#2a2340'; ctx.fillRect(236, 184, 168, 168); }
+                    else { ctx.fillStyle = '#efe9df'; ctx.fillRect(236, 184, 168, 168); }
+                } catch (e) { ctx.fillStyle = '#efe9df'; ctx.fillRect(236, 184, 168, 168); }
                 ctx.restore();
-                ctx.strokeStyle = r.color;
+                ctx.strokeStyle = ACCENT;
                 ctx.lineWidth = 2.5;
                 ctx.beginPath();
                 ctx.arc(320, 268, 86, 0, Math.PI * 2);
                 ctx.stroke();
                 // 章名
-                ctx.fillStyle = '#ffffff';
+                ctx.fillStyle = INK;
                 ctx.font = 'bold 52px "Microsoft YaHei"';
                 ctx.fillText(def.name, 320, 470);
                 // 分隔线
-                ctx.strokeStyle = r.color;
+                ctx.strokeStyle = ACCENT;
                 ctx.globalAlpha = 0.7;
                 ctx.lineWidth = 1.5;
                 ctx.beginPath();
@@ -826,27 +823,33 @@
                 ctx.stroke();
                 ctx.globalAlpha = 1;
                 ctx.font = '22px "Microsoft YaHei"';
-                ctx.fillStyle = r.color;
+                ctx.fillStyle = ACCENT;
                 ctx.fillText('✦ ✦ ✦', 320, 512);
-                // 题词(她的话)
-                ctx.fillStyle = '#ffe0ea';
+                // 题词(她的话: 成就定义固定文案, 不是用户对话)
+                ctx.fillStyle = '#3a362f';
                 ctx.font = '28px "Microsoft YaHei"';
                 wrapText(ctx, '“' + def.line + '”', 320, 590, 480, 46);
                 // 正文(描述)
-                ctx.fillStyle = 'rgba(215,205,235,0.88)';
+                ctx.fillStyle = SUB;
                 ctx.font = '22px "Microsoft YaHei"';
                 wrapText(ctx, def.desc, 320, 700, 460, 36);
                 // 页脚
-                ctx.fillStyle = 'rgba(190,180,215,0.8)';
+                ctx.fillStyle = FAINT;
                 ctx.font = '20px "Microsoft YaHei"';
-                ctx.fillText('解锁于 ' + new Date(un.unlockedAt).toLocaleString('zh-CN'), 320, 846);
+                if (!opts.hideTime) ctx.fillText('解锁于 ' + new Date(un.unlockedAt).toLocaleString('zh-CN'), 320, 846);
                 ctx.fillText('第 ' + chapterIdx + ' 页 / 共 ' + DEFS.length + ' 页', 320, 884);
-                ctx.fillStyle = 'rgba(255,180,200,0.9)';
+                ctx.fillStyle = ACCENT;
                 ctx.font = 'bold 22px "Microsoft YaHei"';
-                ctx.fillText('—— 玥玥 · 心灵同行者 · 梦界历 ' + st.days + ' 天', 320, 924);
+                ctx.fillText(opts.hideDays ? '—— 玥玥 · 心灵同行者' : '—— 玥玥 · 心灵同行者 · 梦界历 ' + st.days + ' 天', 320, 924);
+                // 角落小字: AI 标识(宪法: 绝不把 AI 图说成手绘) + 可选署名
+                ctx.font = '14px "Microsoft YaHei"';
+                ctx.fillStyle = FAINT;
+                ctx.textAlign = 'left';
+                ctx.fillText('图像由 AI 生成', 40, 948);
+                if (opts.signature) { ctx.textAlign = 'right'; ctx.fillText('竹墨 · 平台搜「竹箓」', 600, 948); }
                 const dataUrl = canvas.toDataURL('image/png');
-                const text = '我和玥玥认识 ' + st.days + ' 天了。今天解锁了成就「' + def.name + '」（' + r.label + '）。她有一句话给我：「' + def.line + '」 #玥玥 #心灵同行者';
-                resolve({ dataUrl, text });
+                const text = (opts.hideDays ? '' : '我和玥玥认识 ' + st.days + ' 天了。') + '今天解锁了成就「' + def.name + '」（' + r.label + '）。她有一句话给我：「' + def.line + '」 #玥玥 #心灵同行者';
+                resolve({ dataUrl, text, texts });
             };
             const img = new Image();
             img.onload = finish;

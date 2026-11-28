@@ -34,7 +34,7 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            font-family: 'Microsoft YaHei', sans-serif;
+            font-family: 'Microsoft YaHei', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Sans Symbols 2', sans-serif;
             overflow: hidden;
             position: relative;
         }
@@ -221,6 +221,8 @@
         .message.user { background:linear-gradient(135deg, rgba(181,111,140,0.92), rgba(138,107,181,0.92)); color:#fdf7fb; margin-left:auto; border-bottom-right-radius:4px; box-shadow:0 3px 12px rgba(138,107,181,0.28); }
         .message.yueyue { background:rgba(40,34,62,0.58); color:#e6dff4; margin-right:auto; border:1px solid rgba(179,168,224,0.32); border-bottom-left-radius:4px; box-shadow:0 2px 10px rgba(10,7,22,0.25); } /* 第二十轮: 删除重复的 line-height:1.6(与 .message 同值, 纯冗余) */
         .message.yueyue strong { color:#ffb4c8; }
+        /* [r225] 颜文字/抱抱标签不拆行：与 shared.js renderRich 的 <span class="kao"> 配套 */
+        .message .kao, .heart-voice .kao { white-space: nowrap; }
         /* 【心声】独立小卡片:接近实色的淡紫底、清晰可读 */
         .heart-voice {
             margin: 4px 0 12px 0;
@@ -247,6 +249,10 @@
             font-size: 0.62em; letter-spacing: 1.5px; opacity: 0.7;
             color: #c9b8ff; margin-bottom: 2px;
         }
+        /* [r221 P2] 心声三态：empty 空空小字 / heartfelt 真心话标签。宽度仍 ≤62%（j20 契约不动）。 */
+        .heart-voice.heart-empty { background: rgba(58, 44, 92, 0.55); border-left-color: #8f7fc0; color: #cfc4e4; font-style: italic; }
+        .heart-voice.heart-heartfelt { border-left-color: #ffd9a0; }
+        .heart-voice.heart-heartfelt::before { content: '这好像是她的真心话耶...'; color: #ffd9a0; opacity: 0.85; }
         /* 微信式分享消息(她主动发来的消息与日常分享) */
         .wx-share {
             display: flex;
@@ -370,10 +376,21 @@
 .safety-text { font-size:14px; line-height:1.7; color:#cfc6e4; }
 .safety-text b { color:#f0e9ff; font-weight:700; }
 .safety-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+/* [r225] 安全卡：对话内一条安静的粉色小笺；不浮层、不脉冲、不抢视线。
+   老板 2026-11-28：基底要粉色、文字清晰温柔、加颜文字；内测群不当救命稻草。 */
+.safety-card.safety-inline { position:relative; left:auto; bottom:auto; transform:none; z-index:auto; width:auto; max-width:560px; margin:12px auto 6px; padding:14px 16px 12px; background:linear-gradient(180deg, #FFF8FA 0%, #FCEAF0 100%); backdrop-filter:none; border:1px solid rgba(198,126,148,0.38); border-radius:14px; box-shadow:0 4px 16px rgba(120,64,82,0.10); animation:none; color:#5A3A45; }
+.safety-card.safety-inline .safety-title { font-size:15px; font-weight:700; color:#7A3F52; margin-bottom:5px; letter-spacing:0.2px; }
+.safety-card.safety-inline .safety-text { font-size:12.8px; line-height:1.75; color:#5C4650; }
+.safety-card.safety-inline .safety-text b { color:#A64F67; font-weight:700; }
+.safety-card.safety-inline .safety-kao { font-size:12px; color:#B67A8B; margin-left:4px; font-weight:400; }
+.safety-card.safety-inline .safety-hug { color:#B25B72; font-weight:700; }
+.safety-card.safety-inline .safety-actions { margin-top:9px; }
+.safety-card.safety-inline .btn-mini { background:rgba(255,255,255,0.78); border-color:rgba(178,91,114,0.30); color:#8A4A5E; }
 body.day .safety-card { background:rgba(252,250,255,0.97) !important; border-color:rgba(120,100,160,0.28) !important; box-shadow:0 10px 30px rgba(80,60,110,0.18); }
-body.day .safety-title { color:#2b2938; }
-body.day .safety-text { color:#4a4560; }
-body.day .safety-text b { color:#2b2938; }
+body.day .safety-card.safety-inline { background:linear-gradient(180deg, #FFF9F5 0%, #FCEBF0 100%) !important; border-color:rgba(198,126,148,0.34) !important; box-shadow:0 4px 14px rgba(120,64,82,0.09) !important; }
+body.day .safety-card.safety-inline .safety-title { color:#7A3F52; }
+body.day .safety-card.safety-inline .safety-text { color:#5C4650; }
+body.day .safety-card.safety-inline .safety-text b { color:#A64F67; }
         .typing { display:inline-flex; gap:4px; align-items:center; padding:2px 0; }
         .typing span { width:6px; height:6px; border-radius:50%; background:#ffb4c8; animation:typing-bounce 1.2s infinite; }
         .typing span:nth-child(2) { animation-delay:0.15s; }
@@ -1742,6 +1759,9 @@ body.day .safety-text b { color:#2b2938; }
         body.day .message.user { background: rgba(178, 111, 142, 0.82); color: #fff; }
         body.day .chat-title, body.day .ach-wall-head { color: #8a5470; } /* 第58轮: #a05f7d 在浅底只有 4.37:1, 压深到 5.31 */
         body.day .heart-voice { background: rgba(141, 122, 176, 0.14); color: #6b5e88; }
+        body.day .heart-voice.heart-empty { background: rgba(141, 122, 176, 0.10); color: #8a7fa6; }
+        body.day .heart-voice.heart-heartfelt { border-left-color: #d9a441; }
+        body.day .heart-voice.heart-heartfelt::before { color: #b07d2a; }
         body.day .chat-input-area input { background: rgba(255,255,255,0.9); color: #4a4257; border-color: rgba(141,122,176,0.28); }
         body.day .float-btn, body.day .float-btn-left { background: rgba(255,255,255,0.82); color: #5f5474; border-color: rgba(141,122,176,0.25); }
         body.day .more-item, body.day .more-switch .switch-label { color: #5f5474; }
@@ -4692,6 +4712,8 @@ body.day .chat-area .quick-row .quick-hint { color: #8A8074 !important; }
     <div class="more-group">她的节奏</div>
     <div class="more-switch observe-switch" id="moreEnvSense"><span class="switch-track"><span class="switch-knob"></span></span><span class="switch-label">🌐 环境感知</span></div>
     <div class="more-switch observe-switch" id="moreEnvUia"><span class="switch-track"><span class="switch-knob"></span></span><span class="switch-label">🧩 桌面语义（只读结构）</span></div>
+    <!-- [r221 P6] 游戏陪伴开关（yueyue_game_sense 默认开；关=完全不感知不搭话。仅标题/进程名级本地感知，不出网、不记原文） -->
+    <div class="more-switch observe-switch" id="moreGameSense"><span class="switch-track"><span class="switch-knob"></span></span><span class="switch-label">🎮 游戏陪伴</span></div>
     <div class="more-switch observe-switch" id="moreDualBrain"><span class="switch-track"><span class="switch-knob"></span></span><span class="switch-label">🧠 双脑思考</span></div>
     <div class="more-group">感知附加(需开启环境感知)</div>
     <div class="more-item" id="btnStateTell">🎯 指定观察窗口</div>
@@ -4700,6 +4722,9 @@ body.day .chat-area .quick-row .quick-hint { color: #8A8074 !important; }
     <div class="more-item" id="btnToggleBg">🖼️ 背景切换</div>
     <div class="more-item" id="btnDayNight">🌗 昼夜模式</div>
     <div class="more-switch observe-switch" id="btnDayAuto"><span class="switch-track"><span class="switch-knob"></span></span><span class="switch-label">🕒 昼夜定时自动</span></div>
+    <div class="more-switch observe-switch" id="moreCostBadge"><span class="switch-track"><span class="switch-knob"></span></span><span class="switch-label">💰 成本徽章</span></div>
+    <!-- [r221 P7] 我们的天气开关（yueyue_jiaoxin_on 默认开；关掉即藏起小世界入口，不推送不弹窗） -->
+    <div class="more-switch observe-switch" id="moreJiaoxin"><span class="switch-track"><span class="switch-knob"></span></span><span class="switch-label">🌤️ 我们的天气</span></div>
 </div>
 
 <!-- 小世界菜单(右) -->
@@ -4711,13 +4736,138 @@ body.day .chat-area .quick-row .quick-hint { color: #8A8074 !important; }
     <div class="more-group">玩法</div>
     <div class="more-item" id="btnRecommendSong">🎵 推荐歌曲</div>
     <div class="more-item" id="btnWebSearch">🔍 联网搜索</div>
+    <div class="more-item" id="btnSearchConsent">🔐 检索同意</div>
     <div class="more-item" id="btnOpenTags">🎨 定制标签</div>
     <div class="more-item" id="btnStickerManage">😀 表情包</div>
     <div class="more-item" id="btnAchWall">🏆 成就墙<span class="ach-unread-dot" id="achUnreadDot" style="display:none;">0</span></div>
+    <div class="more-item" id="btnHerWorld">🌍 她的世界</div>
+    <div class="more-item" id="btnJiaoxin">🌤️ 我们的天气</div>
+    <!-- [r221 P8] 分享键入口：三类暖纸卡 DIY + 图片剪贴板，全本地生成 -->
+    <div class="more-item" id="btnShareCards">📮 分享卡片</div>
     <div class="more-group">管理</div>
     <div class="more-item" id="btnSettings">⚙️ 设置</div>
     <div class="more-item" id="morePolicyBtn">📜 隐私政策与用户协议</div>
     <div class="more-item" id="moreHelpBtn">❓ 功能指南</div>
+</div>
+
+<!-- [r221 P1] 她的世界（白盒只读页签）：世界书当前解锁 + world_events 台账（可删单条）。暖纸 #FAF8F4 / 暖墨 #23211E，禁深色霓虹。 -->
+<div id="herworld-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(35,33,30,0.45); z-index:9996; justify-content:center; align-items:center;">
+    <div style="max-width:560px; width:92%; max-height:82vh; overflow-y:auto; background:#FAF8F4; border:1px solid #e3ddd2; border-radius:18px; padding:26px 24px; color:#23211E; box-shadow:0 12px 40px rgba(35,33,30,0.25);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+            <h3 style="margin:0; color:#23211E; font-size:1.05em;">🌍 她的世界</h3>
+            <button id="herworldCloseBtn" style="background:none; border:none; color:#8a8276; font-size:18px; cursor:pointer;">✕</button>
+        </div>
+        <div id="herworldStage" style="font-size:0.82em; color:#6b6459; margin-bottom:12px;"></div>
+        <div style="font-size:0.8em; font-weight:600; color:#23211E; margin:10px 0 6px;">当前解锁的世界</div>
+        <div id="herworldBook" style="font-size:0.82em; line-height:1.6; color:#3a362f; background:#f3efe7; border:1px solid #e3ddd2; border-radius:10px; padding:12px; margin-bottom:14px;"></div>
+        <div style="font-size:0.8em; font-weight:600; color:#23211E; margin:10px 0 6px;">世界事件台账（最近 200 条，可删单条）</div>
+        <div id="herworldEvents" style="font-size:0.8em; line-height:1.55; color:#3a362f;"></div>
+        <!-- [r221 P8] 分享入口：世界风景卡（只带 canon 风景/beats 标题/进度，不带对话与记忆） -->
+        <div style="margin-top:14px; text-align:right;">
+            <button id="herworldShareBtn" style="background:#FAF8F4; border:1px solid #A9713B; color:#A9713B; font-size:0.84em; cursor:pointer; padding:7px 14px; border-radius:10px;">📮 分享一张风景卡</button>
+        </div>
+    </div>
+</div>
+
+<!-- [r221 P7] 我们的天气（交心值＝关系天气 + 双向互相了解度）。暖纸 #FAF8F4 / 暖墨 #23211E，禁深色霓虹。
+     四条护栏：不推送（点开才看）/ 可藏（moreJiaoxin 开关）/ floor=0.5 及格线 / 无任务。数据全本地。 -->
+<div id="jiaoxin-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(35,33,30,0.45); z-index:9996; justify-content:center; align-items:center;">
+    <div style="max-width:520px; width:92%; max-height:82vh; overflow-y:auto; background:#FAF8F4; border:1px solid #e3ddd2; border-radius:18px; padding:26px 24px; color:#23211E; box-shadow:0 12px 40px rgba(35,33,30,0.25);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+            <h3 style="margin:0; color:#23211E; font-size:1.05em;">🌤️ 我们的天气</h3>
+            <button id="jiaoxinCloseBtn" style="background:none; border:none; color:#8a8276; font-size:18px; cursor:pointer;">✕</button>
+        </div>
+        <div id="jiaoxinStage" style="font-size:0.82em; color:#6b6459; margin-bottom:12px;"></div>
+        <div style="display:flex; align-items:center; gap:14px; background:#f3efe7; border:1px solid #e3ddd2; border-radius:12px; padding:16px;">
+            <span id="jiaoxinWeatherIcon" style="font-size:40px; line-height:1;">⛅</span>
+            <div style="flex:1;">
+                <div style="display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;">
+                    <span id="jiaoxinWeatherLabel" style="font-size:1.05em; font-weight:600; color:#23211E;">多云</span>
+                    <span id="jiaoxinNum" style="font-size:0.8em; color:#8a8276;"></span>
+                    <button id="jiaoxinNumToggle" style="background:none; border:none; padding:0; color:#8a8276; font-size:0.78em; text-decoration:underline; cursor:pointer;">藏起数字</button>
+                </div>
+                <div id="jiaoxinCaption" style="font-size:0.82em; color:#6b6459; margin-top:4px; line-height:1.5;"></div>
+            </div>
+        </div>
+        <div style="margin-top:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:5px;">
+                <span style="font-size:0.85em; font-weight:600; color:#23211E;">她懂你</span>
+                <span id="jiaoxinHerPct" style="font-size:0.78em; color:#8a8276;"></span>
+            </div>
+            <div style="height:8px; background:#efe9df; border:1px solid #e3ddd2; border-radius:6px; overflow:hidden;">
+                <div id="jiaoxinHerBar" style="height:100%; width:0%; background:#c2a26b; border-radius:6px; transition:width .4s;"></div>
+            </div>
+            <div id="jiaoxinHerTxt" style="font-size:0.78em; color:#6b6459; margin-top:5px; line-height:1.5;"></div>
+        </div>
+        <div style="margin-top:14px;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:5px;">
+                <span style="font-size:0.85em; font-weight:600; color:#23211E;">你懂她</span>
+                <span id="jiaoxinYouPct" style="font-size:0.78em; color:#8a8276;"></span>
+            </div>
+            <div style="height:8px; background:#efe9df; border:1px solid #e3ddd2; border-radius:6px; overflow:hidden;">
+                <div id="jiaoxinYouBar" style="height:100%; width:0%; background:#90a4ae; border-radius:6px; transition:width .4s;"></div>
+            </div>
+            <div id="jiaoxinYouTxt" style="font-size:0.78em; color:#6b6459; margin-top:5px; line-height:1.5;"></div>
+        </div>
+        <div style="font-size:0.75em; color:#8a8276; margin-top:16px; line-height:1.6; border-top:1px solid #e3ddd2; padding-top:12px;">
+            这是你们近期互动的天气，不是分数，也没有任务。再久不聊，暖意也在（不会掉到及格线以下）。<br>
+            只记在这台电脑上，绝不外传。不想看：左上「她的节奏」→ 界面 → 我们的天气。
+        </div>
+        <!-- [r221 P8] 分享入口：关系天气卡（只带天气意象/数字，不带记忆与对话原文） -->
+        <div style="margin-top:14px; text-align:right;">
+            <button id="jiaoxinShareBtn" style="background:#FAF8F4; border:1px solid #A9713B; color:#A9713B; font-size:0.84em; cursor:pointer; padding:7px 14px; border-radius:10px;">📮 分享一张天气卡</button>
+        </div>
+    </div>
+</div>
+
+<!-- [r221 P8] 分享键统一面板：三类暖纸卡（成就/天气/风景）+ DIY 藏字段 + 可编辑文案 + 复制图片/下载PNG/复制文案。
+     全本地生成，用户自己复制/下载后手动发；不自动上传、不自动发群。暖纸 #FAF8F4 / 暖墨 #23211E，禁深色霓虹。 -->
+<div id="sharecard-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(35,33,30,0.45); z-index:9999; justify-content:center; align-items:center;">
+    <div style="max-width:660px; width:94%; max-height:88vh; overflow-y:auto; background:#FAF8F4; border:1px solid #e3ddd2; border-radius:18px; padding:24px 22px; color:#23211E; box-shadow:0 12px 40px rgba(35,33,30,0.25);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h3 style="margin:0; color:#23211E; font-size:1.05em;">📮 分享一张卡</h3>
+            <button id="sharecardCloseBtn" style="background:none; border:none; color:#8a8276; font-size:18px; cursor:pointer;">✕</button>
+        </div>
+        <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
+            <button id="scTabAch" style="background:#23211E; border:1px solid #23211E; color:#FAF8F4; font-size:0.86em; cursor:pointer; padding:7px 14px; border-radius:10px;">🏆 成就卡</button>
+            <button id="scTabWeather" style="background:#efe9df; border:1px solid #d8d0c2; color:#6b6459; font-size:0.86em; cursor:pointer; padding:7px 14px; border-radius:10px;">🌤️ 天气卡</button>
+            <button id="scTabWorld" style="background:#efe9df; border:1px solid #d8d0c2; color:#6b6459; font-size:0.86em; cursor:pointer; padding:7px 14px; border-radius:10px;">🌍 风景卡</button>
+        </div>
+        <div id="scAchRow" style="margin-bottom:10px;">
+            <select id="scAchSelect" style="width:100%; box-sizing:border-box; background:#fff; border:1px solid #d8d0c2; border-radius:8px; padding:7px 8px; font-size:0.86em; color:#23211E;"></select>
+        </div>
+        <div style="display:flex; gap:16px; flex-wrap:wrap;">
+            <div style="flex:0 0 auto;">
+                <img id="scPreviewImg" alt="分享卡预览" style="width:256px; border:1px solid #e3ddd2; border-radius:10px; display:none; background:#FAF8F4;">
+                <div id="scStatus" style="font-size:0.78em; color:#8a8276; width:256px; margin-top:6px; line-height:1.5;"></div>
+            </div>
+            <div style="flex:1; min-width:230px;">
+                <div style="font-size:0.8em; font-weight:600; color:#23211E; margin-bottom:6px;">DIY（勾选即生效，卡会重画）</div>
+                <div id="scDiyBox" style="font-size:0.82em; line-height:1.9; color:#3a362f;"></div>
+                <div style="font-size:0.8em; font-weight:600; color:#23211E; margin:10px 0 4px;">分享文案（可改）</div>
+                <textarea id="scText" rows="4" style="width:100%; box-sizing:border-box; background:#fff; border:1px solid #d8d0c2; border-radius:8px; padding:8px; font-size:0.85em; color:#23211E; resize:vertical; font-family:inherit;"></textarea>
+                <div id="scHint" style="font-size:0.74em; color:#8a8276; margin-top:6px; line-height:1.55;">卡上只有成就 / 天气 / 数字 / 风景，不含对话与记忆原文。复制后自己发到想发的地方，不会自动上传。</div>
+            </div>
+        </div>
+        <div style="display:flex; gap:10px; margin-top:14px; justify-content:flex-end; flex-wrap:wrap;">
+            <button id="scCopyImgBtn" style="background:#23211E; border:1px solid #23211E; color:#FAF8F4; font-size:0.86em; cursor:pointer; padding:8px 16px; border-radius:10px;">🖼️ 复制图片</button>
+            <button id="scDownloadBtn" style="background:#efe9df; border:1px solid #d8d0c2; color:#6b6459; font-size:0.86em; cursor:pointer; padding:8px 16px; border-radius:10px;">⬇️ 下载 PNG</button>
+            <button id="scCopyTextBtn" style="background:#efe9df; border:1px solid #d8d0c2; color:#6b6459; font-size:0.86em; cursor:pointer; padding:8px 16px; border-radius:10px;">📋 复制文案</button>
+        </div>
+    </div>
+</div>
+
+<!-- [r221 P1] 检索同意卡（首启一次性手动同意，默认未同意）。暖纸暖墨，禁深色霓虹。 -->
+<div id="searchconsent-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(35,33,30,0.45); z-index:9998; justify-content:center; align-items:center;">
+    <div style="max-width:460px; width:90%; background:#FAF8F4; border:1px solid #e3ddd2; border-radius:18px; padding:26px 24px; color:#23211E; box-shadow:0 12px 40px rgba(35,33,30,0.25);">
+        <h3 style="margin:0 0 12px; color:#23211E; font-size:1.05em;">🔐 让她去现实世界查一下？</h3>
+        <p style="font-size:0.86em; line-height:1.7; color:#3a362f; margin:0 0 10px;">打开联网搜索后，她回答前会先去现实世界查一点资料，用来接住你。这需要你点头同意一次。</p>
+        <p style="font-size:0.8em; line-height:1.6; color:#6b6459; margin:0 0 18px;">不同意也没关系：她就待在梦界这个纯虚拟世界里陪你，不会报错。你的对话不会被拿去训练。随时可以在「小世界 → 检索同意」里改。</p>
+        <div style="display:flex; gap:10px; justify-content:flex-end;">
+            <button id="searchConsentNo" style="background:#efe9df; border:1px solid #d8d0c2; color:#6b6459; font-size:0.86em; cursor:pointer; padding:8px 16px; border-radius:10px;">先不用</button>
+            <button id="searchConsentYes" style="background:#23211E; border:1px solid #23211E; color:#FAF8F4; font-size:0.86em; cursor:pointer; padding:8px 16px; border-radius:10px;">同意她查</button>
+        </div>
+    </div>
 </div>
 
 <!-- 表情包管理 -->
@@ -4862,12 +5012,16 @@ body.day .chat-area .quick-row .quick-hint { color: #8A8074 !important; }
 
 <script src="config.js"></script>
 <script src="shared.js"></script>
+<script src="game-sense.js"></script>
 <script src="analytics.js"></script>
 <script src="tts-config.js"></script>
 <script src="tts-voice.js"></script>
 <script src="soul-pack.js"></script>
+<script src="worldbook.js"></script>
 <script src="chat-engine.js"></script>
+<script src="jiaoxin.js"></script>
 <script src="achievements.js"></script>
+<script src="share-cards.js"></script>
 <script src="live2d-bridge.js"></script>
 <script src="voice-input.js"></script>
 <script src="index.js"></script>
@@ -5211,6 +5365,185 @@ body.day .chat-area .quick-row .quick-hint { color: #8A8074 !important; }
     </div>
 </div>
 
+<style id="r227-night-theme">
+        /* [r227] 夜的识别：深墨青 / 灯笼琥珀 / 月白 / 纸纹
+           概念：窗外是夜，窗内是一盏灯。只改夜间，白天 body.day 不动。 */
+        body:not(.day) {
+            --y-bg: #122A2C;
+            --y-panel: #234B4F;
+            --y-panel-2: #2A585C;
+            --y-ink: #F6EEE4;
+            --y-muted: #C6D0C8;
+            --y-amber: #E2AF74;
+            --y-amber-2: #B77845;
+            --y-plum: #6E4B55;
+            --y-line: rgba(216, 160, 102, .26);
+            --y-glow: rgba(216, 160, 102, .16);
+            background:
+                radial-gradient(900px 620px at 18% 8%, rgba(45, 112, 108, .30), transparent 65%),
+                radial-gradient(820px 700px at 82% 85%, rgba(226, 175, 116, .10), transparent 62%),
+                linear-gradient(160deg, #12292C 0%, #0E2225 52%, #143034 100%) !important;}
+        body:not(.day) .bg-video {
+            filter: grayscale(.88) brightness(.38) contrast(1.02) blur(16px) !important;
+            opacity: .34 !important;}
+        body:not(.day) .bg-video-shade {
+            background:
+                radial-gradient(circle at 78% 10%, rgba(232, 190, 140, .30), transparent 30%),
+                radial-gradient(circle at 76% 12%, rgba(216, 160, 102, .18), transparent 48%),
+                radial-gradient(ellipse at 50% 56%, rgba(16, 38, 40, .02), rgba(8, 20, 22, .66) 100%),
+                linear-gradient(180deg, rgba(16, 34, 36, .56), rgba(10, 24, 26, .70)) !important;}
+        body:not(.day) #appTitlebar {
+            background: rgba(14, 32, 35, .90) !important;
+            border-bottom-color: rgba(216, 160, 102, .14) !important;}
+        body:not(.day) .tb-btn {
+            background: rgba(255, 255, 255, .035) !important;
+            border-color: rgba(216, 160, 102, .16) !important;
+            color: rgba(242, 233, 222, .78) !important;}
+        body:not(.day) .tb-btn:hover {
+            background: rgba(216, 160, 102, .14) !important;
+            border-color: rgba(216, 160, 102, .30) !important;
+            color: #FFF2E3 !important;}
+        body:not(.day) .chat-area {
+            background:
+                radial-gradient(130% 88% at 84% 0%, rgba(226, 170, 112, .26), transparent 56%),
+                linear-gradient(180deg, rgba(38, 82, 86, .97) 0%, rgba(23, 58, 62, .99) 100%) !important;
+            background-size: auto, auto !important;
+            background-blend-mode: normal, normal !important;
+            border-color: rgba(216, 160, 102, .30) rgba(216, 160, 102, .20) rgba(216, 160, 102, .20) rgba(216, 160, 102, .36) !important;
+            box-shadow: 0 22px 60px rgba(0, 0, 0, .36), 0 0 54px rgba(216, 160, 102, .14), inset 0 1px 0 rgba(255, 236, 214, .10) !important;}
+        body:not(.day) .chat-area::before {
+            background:
+                radial-gradient(90% 50% at 82% 0%, rgba(226, 170, 112, .22), transparent 64%),
+                radial-gradient(1.5px 1.5px at 18% 18%, rgba(255, 238, 216, .16), transparent),
+                radial-gradient(1.5px 1.5px at 63% 10%, rgba(255, 238, 216, .12), transparent),
+                radial-gradient(1.5px 1.5px at 39% 30%, rgba(255, 238, 216, .08), transparent) !important;
+            opacity: .9 !important;}
+        body:not(.day) .chat-header {
+            border-bottom-color: rgba(216, 160, 102, .16) !important;}
+        body:not(.day) .chat-title {
+            color: #F6EEE4 !important;
+            letter-spacing: .04em !important;}
+        body:not(.day) .chat-title::after {
+            content: ' ☾' !important;
+            color: #E2AF74 !important;
+            font-size: .8em !important;
+            letter-spacing: .08em !important;}
+        body:not(.day) .stage-badge {
+            background: rgba(216, 160, 102, .18) !important;
+            border-color: rgba(216, 160, 102, .34) !important;
+            color: #F0CFA9 !important;}
+        body:not(.day) .mood-chip {
+            background: rgba(255, 255, 255, .04) !important;
+            border-color: rgba(216, 160, 102, .16) !important;
+            color: #B9C4BE !important;}
+        body:not(.day) .message.yueyue {
+            background: linear-gradient(180deg, rgba(44, 88, 92, .96), rgba(31, 68, 72, .97)) !important;
+            color: #F4EEE5 !important;
+            border-color: rgba(216, 160, 102, .24) !important;
+            box-shadow: 0 3px 16px rgba(0, 0, 0, .22) !important;}
+        body:not(.day) .message.user {
+            background: linear-gradient(135deg, rgba(110, 75, 85, .95), rgba(80, 54, 64, .96)) !important;
+            color: #FBF2E9 !important;
+            border-color: rgba(216, 160, 102, .12) !important;
+            box-shadow: 0 3px 14px rgba(0, 0, 0, .22) !important;}
+        body:not(.day) .message.yueyue strong { color: #EFC08C !important;}
+        body:not(.day) .heart-voice {
+            background: rgba(30, 70, 74, .92) !important;
+            border-left-color: rgba(216, 160, 102, .64) !important;
+            color: #E8E0D2 !important;}
+        body:not(.day) .heart-voice::before { color: #D1B08A !important;}
+        body:not(.day) .chat-input-area { border-top-color: rgba(216, 160, 102, .16) !important;}
+        body:not(.day) #userInput {
+            background: rgba(18, 48, 52, .92) !important;
+            border-color: rgba(216, 160, 102, .28) !important;
+            color: #F4EADF !important;}
+        body:not(.day) #userInput::placeholder { color: rgba(210, 196, 180, .55) !important;}
+        body:not(.day) #userInput:focus {
+            border-color: #E2AF74 !important;
+            box-shadow: 0 0 0 3px rgba(216, 160, 102, .12) !important;}
+        body:not(.day) #sendBtn {
+            background: linear-gradient(135deg, #E5B681, #B77845) !important;
+            border: 1px solid rgba(255, 225, 190, .30) !important;
+            color: #1A120D !important;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, .28) !important;}
+        body:not(.day) .voice-toggle {
+            background: rgba(255, 255, 255, .04) !important;
+            border-color: rgba(216, 160, 102, .18) !important;
+            color: #D9C9B8 !important;}
+        body:not(.day) .mini-switch {
+            background: rgba(255, 255, 255, .04) !important;
+            border-color: rgba(216, 160, 102, .18) !important;
+            color: #C9BCAA !important;}
+        body:not(.day) .mini-switch .ms-label { color: #C9BCAA !important;}
+        body:not(.day) .mini-switch.on {
+            background: rgba(216, 160, 102, .20) !important;
+            border-color: rgba(216, 160, 102, .36) !important;
+            color: #F5E6D5 !important;}
+        body:not(.day) .mini-switch.on .ms-track {
+            background: #C98A4E !important;
+            border-color: #D8A066 !important;}
+        body:not(.day) .quick-btn {
+            background: rgba(255, 255, 255, .04) !important;
+            border-color: rgba(216, 160, 102, .18) !important;
+            color: #D9C9B8 !important;}
+        body:not(.day) .quick-btn:hover {
+            background: rgba(216, 160, 102, .16) !important;
+            border-color: rgba(216, 160, 102, .36) !important;
+            color: #F5E6D5 !important;}
+        body:not(.day) .float-btn,
+        body:not(.day) .float-btn-left {
+            background: rgba(20, 50, 54, .84) !important;
+            border-color: rgba(216, 160, 102, .24) !important;
+            color: #E7D8C7 !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, .24) !important;}
+        body:not(.day) .float-btn:hover,
+        body:not(.day) .float-btn-left:hover {
+            background: rgba(216, 160, 102, .18) !important;
+            border-color: rgba(216, 160, 102, .38) !important;
+            color: #FFF3E4 !important;}
+        body:not(.day) .float-btn.on,
+        body:not(.day) .float-btn-left.on,
+        body:not(.day) .float-btn.active,
+        body:not(.day) .float-btn-left.active {
+            background: rgba(216, 160, 102, .24) !important;
+            border-color: rgba(216, 160, 102, .42) !important;
+            color: #FFF3E4 !important;}
+        body:not(.day) .her-stage-card {
+            background: rgba(20, 50, 54, .80) !important;
+            border-color: rgba(216, 160, 102, .22) !important;
+            color: #E2D6C6 !important;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .24) !important;}
+        body:not(.day) .ambient-caption {
+            color: rgba(226, 211, 192, .82) !important;
+            text-shadow: 0 1px 10px rgba(0, 0, 0, .55) !important;}
+        body:not(.day) #helpBtn,
+        body:not(.day) #settingsGearBtn {
+            background: rgba(255, 255, 255, .04) !important;
+            border-color: rgba(216, 160, 102, .20) !important;
+            color: #E7D3C2 !important;}
+        body:not(.day) #costBadge {
+            background: rgba(20, 50, 54, .82) !important;
+            color: #E8C49A !important;
+            border-color: rgba(216, 160, 102, .26) !important;}
+        body:not(.day) #yueyue-music-bar {
+            background: linear-gradient(180deg, rgba(30, 72, 76, .94), rgba(18, 50, 54, .94)) !important;
+            border-color: rgba(216, 160, 102, .32) !important;
+            color: #EADBC8 !important;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, .26) !important;}
+        body:not(.day) #yueyue-music-bar button,
+        body:not(.day) #yueyue-music-bar span { color: #EADBC8 !important;}
+        body:not(.day) #yueyue-music-bar button:hover { color: #FFF2E3 !important;}
+    </style>
+
+<style id="r227-fixes">
+body:not(.day) #userInput { outline-color: rgba(226,175,116,.55) !important; }
+body:not(.day) #userInput:focus { outline-color: #E2AF74 !important; box-shadow: 0 0 0 3px rgba(226,175,116,.16) !important; }
+body:not(.day) .quick-btn { background: rgba(34,74,78,.62) !important; border-color: rgba(216,160,102,.28) !important; color: #E2D6C6 !important; }
+body:not(.day) .quick-btn .q-label { color: #E2D6C6 !important; }
+body:not(.day) #yueyue-music-bar { opacity: 1 !important; background: linear-gradient(180deg, rgba(30,72,76,.96), rgba(18,50,54,.96)) !important; }
+body:not(.day) #yueyue-music-name, body:not(.day) #yueyue-music-bar button { color: #EADBC8 !important; }
+body:not(.day) .ce-prompt { background: linear-gradient(135deg, rgba(226,175,116,.94), rgba(164,104,62,.94)) !important; border-color: rgba(246,238,228,.38) !important; color: #1B1410 !important; }
+</style>
 <style id="reduce-motion-css">
 /* 2026-10-24 第86轮: 系统「减少动态效果」下抑制装饰性动画/过渡(保留状态变化, 只是瞬时完成) */
 @media (prefers-reduced-motion: reduce) {
