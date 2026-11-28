@@ -31,7 +31,7 @@
 
 | 件 | 链接 | 说明 |
 |---|---|---|
-| 主程序安装包 | [Yueyue-Setup-0.3.0-beta.10.exe](https://github.com/zhumo-jiabing/yueyue-download/releases/download/v0.3.0-beta.10/Yueyue-Setup-0.3.0-beta.10.exe) | 248,743,223 B · sha256 前16 `C6181811DF5C5FC8`；安装包在 [下载仓库 Release](https://github.com/zhumo-jiabing/yueyue-download/releases/tag/v0.3.0-beta.10)；本仓库 Release 只放源码与说明 |
+| 主程序安装包 | [Yueyue-Setup-0.3.0-beta.10.exe](https://github.com/zhumo-jiabing/yueyue-download/releases/download/v0.3.0-beta.10/Yueyue-Setup-0.3.0-beta.10.exe) | 248,751,237 B · sha256 前16 `14ABE613A3F82E15`；安装包在 [下载仓库 Release](https://github.com/zhumo-jiabing/yueyue-download/releases/tag/v0.3.0-beta.10)；本仓库 Release 只放源码与说明 |
 | 发布页（更新日志/披露） | [yueyue-download · v0.3.0-beta.10](https://github.com/zhumo-jiabing/yueyue-download/releases/tag/v0.3.0-beta.10) | 公开直链，无需登录 |
 | 语音包（让她出声） | QQ 群文件 / 网盘（见群公告） | GPU 1.7B 约 6 GB，超 GitHub 单附件 2 GB 上限故不挂 GitHub；主程序默认不含语音，装完会打字、不出声 |
 | 宣传页（实机图/规格/路线图） | <https://magnificent-gaufre-629323.netlify.app/> | 暖纸配色，含 6 张软件内实机截图 |
