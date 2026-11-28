@@ -220,6 +220,9 @@
         let dragging = false, moved = false, lx = 0, ly = 0;
         let raf = null, pending = null;
         stage.addEventListener('pointerdown', (e) => {
+            // [r235] 气泡卡保留双击防误触：拖动只从 Q 版/空白舞台开始。
+            // 若在气泡上 pointerdown 并 setPointerCapture，click 会被重定向到 stage，双击打开聊天会失效。
+            if (e.target.closest('#bubble')) return;
             if (e.target.closest('button, input, details, #petWinList, a, textarea')) return;
             if (e.button !== 0) return;
             dragging = true; moved = false; lx = e.clientX; ly = e.clientY;
