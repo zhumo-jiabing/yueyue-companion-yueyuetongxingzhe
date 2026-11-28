@@ -5,7 +5,7 @@
 // 例如 BILLING = { tiers: [...], features: {...} },当前全部功能免费开放。
 window.APP_CONFIG = {
     // 2026-09-10 公众测试版标识(设置页「关于」显示)
-    APP_VERSION: '0.3.0-beta.9',
+    APP_VERSION: '0.3.0-beta.10',
     // 2026-11-23 r188: 宣传页「拿到这一份」下载段读这里。
     // url 留空 = 页面显示「内测版在群里发」，不会出现点不动的按钮。
     // 填了才渲染下载按钮 + 备用地址；sizeMB 只是给用户一个心理预期，不影响下载。
@@ -13,7 +13,7 @@ window.APP_CONFIG = {
         url: '',
         mirror: '',
         sizeMB: 252,
-        version: '0.3.0-beta.9',
+        version: '0.3.0-beta.10',
         note: ''
     },
     BUILD_CHANNEL: '公众测试版',
@@ -52,8 +52,8 @@ window.APP_CONFIG = {
     DEEP_THINK: { LONG_CHARS: 40, VERY_LONG_CHARS: 100 },
     // TODO(商业化):订阅等级与权益设计挂载点
     BILLING: null,
-    // 对外联系方式(K2 两段式): 空串 = 阶段A(内部测试版文案); 填入值 = policy.html 渲染「联系开发者：<值>」+ 父页复制按钮
+    // 对外联系方式(K2 两段式): 空串 = 阶段A; 填入值 = policy.html 渲染「联系渠道：<值>」+ 父页复制按钮
     // 第53轮(老板拍板): 填入对外联系方式 -> policy.html 自动从「阶段A(未公开)」切到「阶段B(显示联系方式)」,
     // 设置页「隐私政策与用户协议」打开后第十五节即可见; 安全卡「复制联系方式」也会复制这一行。
-    CONTACT: 'QQ 2934096191 ｜ 微信 a187939868',
+    CONTACT: 'QQ群 1002686604',
 };

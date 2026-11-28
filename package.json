@@ -1,6 +1,6 @@
 {
   "name": "yueyueapp",
-  "version": "0.3.0-beta.9",
+  "version": "0.3.0-beta.10",
   "description": "YueYue Backend Proxy - 玥玥陪伴AI后端代理",
   "main": "main.js",
   "scripts": {
@@ -76,7 +76,7 @@
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "artifactName": "Yueyue-0.3.0-beta.6-setup.exe"
+      "artifactName": "Yueyue-0.3.0-beta.10-setup.exe"
     }
   },
   "dependencies": {
